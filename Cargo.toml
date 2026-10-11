@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "crates/prana-core",
+]
+resolver = "2"

@@ -1,0 +1,17 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "PRANA-VAYU is a static HTML frontend; no package installation is required."
+    build:
+      commands:
+        - test -s index.html
+        - mkdir -p dist
+        - cp index.html dist/index.html
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths: []

@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  PRANA-VAYU - Localized Air Pollution Incident Response Platform
+  Serverless backend with HTTP API Gateway, Python 3.12 Lambda, DynamoDB (on-demand),
+  and optional Amazon Bedrock (Claude 3.5 Sonnet) qualitative analysis.
+  Developer: SARVEPALLI AUDI SIVA BHANUVARDHAN | Brand: AS PHENIX
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: python3.12
+    Tracing: Active
+    LoggingConfig:
+      LogFormat: JSON
+
+Parameters:
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-5-sonnet-20240620-v1:0
+    Description: Amazon Bedrock model ID for qualitative particulate analysis and referral memos.
+
+Resources:
+  # ============================================================================
+  # HTTP API Gateway (API Gateway v2) with explicit CORS configuration
+  # ============================================================================
+  PranaVayuHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Description: PRANA-VAYU Incident Ingestion and Retrieval HTTP API
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+        MaxAge: 3600
+
+  # ============================================================================
+  # Python 3.12 Serverless Lambda Function
+  # ============================================================================
+  PranaVayuFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function.lambda_handler
+      CodeUri: ../services/api
+      Description: PRANA-VAYU incident intake, DynamoDB persistence, and Bedrock qualitative analysis.
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref IncidentsTable
+          AWS_REGION_NAME: !Ref 'AWS::Region'
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+      Events:
+        RootAny:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PranaVayuHttpApi
+            Path: /
+            Method: ANY
+        ProxyAny:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PranaVayuHttpApi
+            Path: /{proxy+}
+            Method: ANY
+      Policies:
+        # Least-privilege DynamoDB access (scoped to the IncidentsTable)
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Scan
+                - dynamodb:Query
+              Resource: !GetAtt IncidentsTable.Arn
+        # Scoped Amazon Bedrock foundation model invocation
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - !Sub 'arn:aws:bedrock:*::foundation-model/${BedrockModelId}'
+                - 'arn:aws:bedrock:*::foundation-model/anthropic.claude-*'
+
+  # ============================================================================
+  # Amazon DynamoDB Table (On-Demand Billing, String PK: incident_id)
+  # ============================================================================
+  IncidentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PRANA_VAYU_Incidents
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: incident_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: incident_id
+          KeyType: HASH
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+Outputs:
+  ApiUrl:
+    Description: HTTP API Gateway endpoint base URL for PRANA-VAYU console integration
+    Value: !Sub 'https://${PranaVayuHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: PranaVayuApiUrl
+
+  FunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt PranaVayuFunction.Arn
+
+  TableName:
+    Description: DynamoDB Table Name for Incident Storage
+    Value: !Ref IncidentsTable
