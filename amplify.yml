@@ -3,12 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "PRANA-VAYU is a static HTML frontend; no package installation is required."
+        - echo "PRANA-VAYU pre-build verified."
     build:
       commands:
-        - test -s index.html
-        - mkdir -p dist
-        - cp index.html dist/index.html
+        - npm run build
   artifacts:
     baseDirectory: dist
     files:

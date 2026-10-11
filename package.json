@@ -1,0 +1,11 @@
+{
+  "name": "prana-vayu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PRANA-VAYU: Secure Systems Engineering & Cloud Resilience Platform",
+  "author": "Sarvepalli Audi Siva Bhanuvardhan",
+  "scripts": {
+    "build": "node -e \"const fs=require('fs'); fs.mkdirSync('dist', {recursive:true}); fs.copyFileSync('index.html', 'dist/index.html'); console.log('PRANA-VAYU build success: dist/index.html generated.');\"",
+    "start": "node -e \"const http=require('http'), fs=require('fs'); http.createServer((req,res)=>{ res.writeHead(200, {'Content-Type': 'text/html'}); fs.createReadStream('index.html').pipe(res); }).listen(3000, ()=>console.log('Serving PRANA-VAYU at http://localhost:3000'));\""
+  }
+}

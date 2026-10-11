@@ -644,6 +644,44 @@
       gap: 12px;
     }
 
+    .aws-gateway-bar {
+      background: #060c18;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+
+    .aws-endpoint-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .aws-endpoint-input {
+      background: #0b1324;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      padding: 6px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      flex: 1;
+      min-width: 240px;
+      transition: border-color 0.15s ease;
+    }
+
+    .aws-endpoint-input:focus {
+      border-color: var(--cyan);
+      outline: none;
+    }
+
     .console-tabs {
       display: flex;
       gap: 4px;
@@ -1310,6 +1348,20 @@ git push origin main
             <span id="cConnPill" class="tag live">LOCAL DEMO READY</span>
           </div>
 
+          <!-- AWS API Gateway Integration Bar -->
+          <div class="aws-gateway-bar">
+            <div class="aws-endpoint-wrap">
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);white-space:nowrap;">AWS API GATEWAY:</span>
+              <input id="awsEndpointInput" class="aws-endpoint-input" type="url" placeholder="https://xxxx.execute-api.ap-south-1.amazonaws.com" spellcheck="false" title="Enter AWS API Gateway endpoint URL (e.g., from SAM outputs)">
+              <button id="btnSaveEndpoint" class="btn small primary" type="button">Connect &amp; Sync</button>
+              <button id="btnResetEndpoint" class="btn small" type="button" title="Disconnect and revert to local storage sandbox">Reset Local</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="awsSyncStatus" style="font-size:11px;color:var(--text-dim);font-family:var(--font-mono);"></span>
+              <span id="awsStatusPill" class="tag live"><span class="dot"></span> LOCAL SANDBOX</span>
+            </div>
+          </div>
+
           <!-- Console View 1: Overview -->
           <div id="c-overview" class="c-view active">
             <div class="hero-metrics-strip" style="border: 0; padding: 0; margin-bottom: 16px;">
@@ -1692,6 +1744,93 @@ git push origin main
         return SEED_DATA;
       }
 
+      const ENDPOINT_KEY = 'prana-vayu-aws-endpoint';
+
+      function getAwsEndpoint() {
+        return (localStorage.getItem(ENDPOINT_KEY) || '').trim().replace(/\/+$/, '');
+      }
+
+      function updateAwsStatus() {
+        const ep = getAwsEndpoint();
+        const input = byId('awsEndpointInput');
+        const pill = byId('awsStatusPill');
+        const connPill = byId('cConnPill');
+        if (input && !input.value) input.value = ep;
+        if (ep) {
+          if (pill) {
+            pill.className = 'tag cyan';
+            pill.innerHTML = '<span class="dot" style="background:#22d3ee;box-shadow:0 0 6px #22d3ee"></span> AWS GATEWAY CONNECTED';
+          }
+          if (connPill) {
+            connPill.className = 'tag cyan';
+            connPill.textContent = 'AWS CLOUD SYNC ACTIVE';
+          }
+        } else {
+          if (pill) {
+            pill.className = 'tag live';
+            pill.innerHTML = '<span class="dot"></span> LOCAL SANDBOX';
+          }
+          if (connPill) {
+            connPill.className = 'tag live';
+            connPill.textContent = 'LOCAL DEMO READY';
+          }
+        }
+      }
+
+      async function syncWithAws(interactive = false) {
+        const ep = getAwsEndpoint();
+        const statusSpan = byId('awsSyncStatus');
+        if (!ep) {
+          if (interactive && statusSpan) {
+            statusSpan.textContent = 'Enter an AWS API Gateway endpoint to sync.';
+            statusSpan.style.color = 'var(--warning)';
+          }
+          return;
+        }
+
+        if (statusSpan) {
+          statusSpan.textContent = 'Connecting to AWS API Gateway...';
+          statusSpan.style.color = 'var(--cyan)';
+        }
+
+        try {
+          const res = await fetch(`${ep}/incidents`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+          });
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+
+          const data = await res.json();
+          const items = Array.isArray(data) ? data : (data.incidents || []);
+          if (items && items.length > 0) {
+            state.incidents = items;
+            saveData();
+            state.activeId = state.incidents[0]?.incident_id || null;
+            renderTable();
+            renderMap();
+            renderDossier(state.incidents[0]);
+            if (statusSpan) {
+              statusSpan.textContent = `Synced ${items.length} records from AWS DynamoDB.`;
+              statusSpan.style.color = 'var(--accent)';
+            }
+          } else {
+            if (statusSpan) {
+              statusSpan.textContent = 'Connected. DynamoDB table currently empty.';
+              statusSpan.style.color = 'var(--text-muted)';
+            }
+          }
+        } catch (err) {
+          console.warn('AWS sync error:', err);
+          if (statusSpan) {
+            statusSpan.textContent = `Sync failed (${err.message}). Using local cache.`;
+            statusSpan.style.color = 'var(--warning)';
+          }
+        }
+      }
+
       function saveData() {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state.incidents));
@@ -1880,30 +2019,93 @@ git push origin main
         switchConsoleTab('c-intake');
       });
 
-      byId('cIntakeForm')?.addEventListener('submit', (e) => {
+      byId('cIntakeForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const lat = byId('cLat').value.trim();
         const lng = byId('cLng').value.trim();
+        const submitBtn = byId('cIntakeForm').querySelector('button[type="submit"]');
 
-        const newItem = {
-          incident_id: 'PV-' + Date.now().toString(36).toUpperCase(),
-          timestamp: Math.floor(Date.now() / 1000),
-          iso_date: nowIso(),
+        const payload = {
           jurisdiction: byId('cJurisdiction').value,
           zone: byId('cZone').value.trim(),
           source: byId('cSource').value,
           severity: byId('cSeverity').value,
-          lifecycle_state: 'Reported',
           notes: byId('cNotes').value.trim(),
           latitude: lat ? Number(lat) : null,
-          longitude: lng ? Number(lng) : null,
-          analysis: {
-            particulate_profile: 'Combustion products include inhalable fine particles, carbon monoxide, and volatile organic vapors. No concentration measured by this platform.',
-            immediate_protocol: ['Maintain safe distance; deploy 15-minute low pressure water mist dousing if safe.', 'Reroute pedestrians 120m upwind.'],
-            long_term_engineering: 'Evaluate composting solutions and plant high-APTI native vegetative buffers (Peepal, Neem, Kaner).',
-            statutory_memo: 'Section 19(5) Air (Prevention and Control of Pollution) Act, 1981 prohibits unauthorized open burning in air pollution control areas.'
-          }
+          longitude: lng ? Number(lng) : null
         };
+
+        const fb = byId('cFormFeedback');
+        const ep = getAwsEndpoint();
+
+        let newItem = null;
+
+        if (ep) {
+          if (submitBtn) submitBtn.disabled = true;
+          if (fb) {
+            fb.textContent = 'Transmitting incident to AWS Lambda & DynamoDB...';
+            fb.style.display = 'block';
+            fb.style.color = 'var(--cyan)';
+          }
+
+          try {
+            const res = await fetch(`${ep}/incidents`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+              const errBody = await res.text();
+              throw new Error(`AWS Lambda returned HTTP ${res.status}: ${errBody}`);
+            }
+
+            const resJson = await res.json();
+            newItem = resJson.incident || resJson;
+            if (fb) {
+              fb.textContent = `Incident ${newItem.incident_id || 'saved'} registered live in AWS DynamoDB.`;
+              fb.style.color = 'var(--accent)';
+            }
+          } catch (err) {
+            console.warn('Remote dispatch failed:', err);
+            if (fb) {
+              fb.textContent = `AWS Gateway error (${err.message}). Logging to local sandbox.`;
+              fb.style.color = 'var(--warning)';
+            }
+          } finally {
+            if (submitBtn) submitBtn.disabled = false;
+          }
+        }
+
+        if (!newItem) {
+          newItem = {
+            incident_id: 'PV-' + Date.now().toString(36).toUpperCase(),
+            timestamp: Math.floor(Date.now() / 1000),
+            iso_date: nowIso(),
+            jurisdiction: payload.jurisdiction,
+            zone: payload.zone,
+            source: payload.source,
+            severity: payload.severity,
+            lifecycle_state: 'Reported',
+            notes: payload.notes,
+            latitude: payload.latitude,
+            longitude: payload.longitude,
+            analysis: {
+              particulate_profile: 'Combustion products include inhalable fine particles, carbon monoxide, and volatile organic vapors. No concentration measured by this platform.',
+              immediate_protocol: ['Maintain safe distance; deploy 15-minute low pressure water mist dousing if safe.', 'Reroute pedestrians 120m upwind.'],
+              long_term_engineering: 'Evaluate composting solutions and plant high-APTI native vegetative buffers (Peepal, Neem, Kaner).',
+              statutory_memo: 'Section 19(5) Air (Prevention and Control of Pollution) Act, 1981 prohibits unauthorized open burning in air pollution control areas.'
+            }
+          };
+          if (!ep && fb) {
+            fb.textContent = `Report logged with ID ${newItem.incident_id} (Local Sandbox).`;
+            fb.style.display = 'block';
+            fb.style.color = 'var(--cyan)';
+          }
+        }
 
         state.incidents.unshift(newItem);
         state.activeId = newItem.incident_id;
@@ -1911,11 +2113,7 @@ git push origin main
         renderTable();
         renderMap();
         renderDossier(newItem);
-
-        const fb = byId('cFormFeedback');
-        fb.textContent = `Report logged with ID ${newItem.incident_id}.`;
-        fb.style.display = 'block';
-        setTimeout(() => fb.style.display = 'none', 4000);
+        setTimeout(() => { if (fb) fb.style.display = 'none'; }, 6000);
       });
 
       byId('cBtnClearForm')?.addEventListener('click', () => {
@@ -1935,6 +2133,24 @@ git push origin main
 
       byId('cBtnPrintNotice')?.addEventListener('click', () => window.print());
 
+      byId('btnSaveEndpoint')?.addEventListener('click', () => {
+        const val = (byId('awsEndpointInput')?.value || '').trim();
+        localStorage.setItem(ENDPOINT_KEY, val);
+        updateAwsStatus();
+        syncWithAws(true);
+      });
+
+      byId('btnResetEndpoint')?.addEventListener('click', () => {
+        localStorage.removeItem(ENDPOINT_KEY);
+        if (byId('awsEndpointInput')) byId('awsEndpointInput').value = '';
+        updateAwsStatus();
+        const statusSpan = byId('awsSyncStatus');
+        if (statusSpan) {
+          statusSpan.textContent = 'Disconnected. Operating in local sandbox mode.';
+          statusSpan.style.color = 'var(--text-dim)';
+        }
+      });
+
       // Init
       state.incidents = loadData();
       state.activeId = state.incidents[0]?.incident_id || null;
@@ -1943,6 +2159,10 @@ git push origin main
       renderTable();
       renderMap();
       renderDossier(state.incidents[0]);
+      updateAwsStatus();
+      if (getAwsEndpoint()) {
+        syncWithAws(false);
+      }
 
       // Clock
       setInterval(() => {
