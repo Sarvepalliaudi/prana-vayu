@@ -325,6 +325,7 @@ def _handle_post(event: Mapping[str, Any], table: Any, bedrock: Any) -> dict[str
         "incident_id": str(uuid.uuid4()),
         "timestamp": timestamp,
         "iso_date": datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat(),
+        "lifecycle_state": "Reported",
         **payload,
         "analysis": analysis,
         "analysis_provider": provider,

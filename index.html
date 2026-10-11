@@ -778,15 +778,101 @@
       background: rgba(30, 41, 59, 0.4);
     }
 
-    /* Leaflet Map in Console */
+    /* Tactical Geospatial Command Center */
     .c-map-wrap {
-      height: 420px;
+      height: 540px;
       position: relative;
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #050811;
     }
 
     #map {
       height: 100%;
       width: 100%;
+      background: #050811;
+    }
+
+    .map-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #091020;
+      border: 1px solid var(--border);
+      border-bottom: 0;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      flex-wrap: wrap;
+    }
+
+    .map-tool-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .map-layer-btn {
+      background: #111a2e;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 11px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .map-layer-btn:hover {
+      background: #1a2744;
+      color: #fff;
+    }
+
+    .map-layer-btn.active {
+      background: #0284c7;
+      color: #fff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.4);
+    }
+
+    .map-crosshair-badge {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      z-index: 800;
+      background: rgba(7, 11, 20, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: #091020 !important;
+      color: #f1f5f9 !important;
+      border: 1px solid #1e293b !important;
+      border-radius: 8px !important;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6) !important;
+      font-family: var(--font-ui) !important;
+    }
+
+    .leaflet-popup-tip {
+      background: #091020 !important;
+      border: 1px solid #1e293b !important;
     }
 
     /* Footer */
@@ -1348,11 +1434,12 @@ git push origin main
             <span id="cConnPill" class="tag live">LOCAL DEMO READY</span>
           </div>
 
-          <!-- AWS API Gateway Integration Bar -->
+          <!-- Backend Integration Bar (Rust Systems Engine & AWS Cloud Gateway) -->
           <div class="aws-gateway-bar">
             <div class="aws-endpoint-wrap">
-              <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);white-space:nowrap;">AWS API GATEWAY:</span>
-              <input id="awsEndpointInput" class="aws-endpoint-input" type="url" placeholder="https://xxxx.execute-api.ap-south-1.amazonaws.com" spellcheck="false" title="Enter AWS API Gateway endpoint URL (e.g., from SAM outputs)">
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);white-space:nowrap;">BACKEND ENGINE:</span>
+              <input id="awsEndpointInput" class="aws-endpoint-input" type="url" placeholder="http://127.0.0.1:8080 or https://xxxx.execute-api.ap-south-1.amazonaws.com" spellcheck="false" title="Enter Rust Server (http://127.0.0.1:8080) or AWS API Gateway endpoint URL">
+              <button id="btnConnectRust" class="btn small" type="button" title="Quick-fill &amp; connect to local Rust engine at http://127.0.0.1:8080">🦀 Local Rust Core</button>
               <button id="btnSaveEndpoint" class="btn small primary" type="button">Connect &amp; Sync</button>
               <button id="btnResetEndpoint" class="btn small" type="button" title="Disconnect and revert to local storage sandbox">Reset Local</button>
             </div>
@@ -1436,7 +1523,13 @@ git push origin main
               </div>
 
               <div class="c-field">
-                <label>GPS Coordinates (Latitude, Longitude)</label>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+                  <label for="cLat" style="margin:0;">GPS Coordinates (Latitude, Longitude)</label>
+                  <div style="display:flex;gap:6px;">
+                    <button type="button" id="btnMapPickCoord" class="btn small" style="padding:2px 8px;font-size:10px;" title="Switch to map and click anywhere to set coordinates">🎯 Pick on Map</button>
+                    <button type="button" id="btnMyGpsCoord" class="btn small" style="padding:2px 8px;font-size:10px;" title="Acquire device GPS location">📍 Use Device GPS</button>
+                  </div>
+                </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                   <input id="cLat" type="number" step="any" placeholder="Latitude (e.g. 10.9205)">
                   <input id="cLng" type="number" step="any" placeholder="Longitude (e.g. 78.7410)">
@@ -1486,13 +1579,47 @@ git push origin main
 
           <!-- Console View 4: Geospatial Map -->
           <div id="c-map" class="c-view">
+            <div class="map-toolbar">
+              <div class="map-tool-group">
+                <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-right:2px;">BASEMAP:</span>
+                <button type="button" class="map-layer-btn active" data-layer="dark">Dark Tactical</button>
+                <button type="button" class="map-layer-btn" data-layer="satellite">🛰️ Satellite Aerial</button>
+                <button type="button" class="map-layer-btn" data-layer="street">🗺️ Street Topo</button>
+              </div>
+              <div class="map-tool-group">
+                <button type="button" id="mapBtnFitAll" class="btn small" title="Fit map view to all active incidents">Fit Incidents</button>
+                <button type="button" id="mapBtnLocate" class="btn small primary" title="Acquire device GPS location and center map">📍 Locate Me</button>
+                <button type="button" id="mapBtnToggleCones" class="btn small" title="Toggle downwind dispersion plume vectors">💨 Plume Vectors: ON</button>
+              </div>
+            </div>
             <div class="c-map-wrap">
               <div id="map"></div>
+              <div id="mapCrosshairBadge" class="map-crosshair-badge">
+                <span>📍 Cursor: <strong id="mapCursorCoords">10.9205° N, 78.7410° E</strong></span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;color:var(--text-dim);flex-wrap:wrap;gap:8px;">
+              <span>💡 <em>Click anywhere on the map to drop a pin, view Google Maps links, and auto-populate the Intake Form.</em></span>
+              <span id="mapLayerAttribution" style="font-family:var(--font-mono);">Tiles: CartoDB Dark Matter (High-Contrast Tactical)</span>
             </div>
           </div>
 
           <!-- Console View 5: Research Dossier -->
           <div id="c-dossier" class="c-view">
+            <!-- Lifecycle State Machine Control Banner -->
+            <div class="fsm-status-bar" style="background:var(--surface-card);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.5px">LIFECYCLE FSM STATE:</span>
+                <span id="dossierStateBadge" class="tag emerald" style="font-size:12px;font-weight:700">Reported</span>
+                <span id="dossierNextTransition" style="font-size:12px;color:var(--text-muted);font-family:var(--font-mono)">→ Next Allowed: Validated</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <button id="btnAdvanceState" type="button" class="btn small primary" title="Advance to the next valid FSM lifecycle state">⚡ Advance Lifecycle State</button>
+                <button id="btnResetState" type="button" class="btn small" title="Reset incident back to Reported state">↺ Reset to Reported</button>
+              </div>
+            </div>
+            <div id="dossierFsmFeedback" style="display:none;font-size:12px;margin-bottom:12px;padding:8px 12px;border-radius:var(--radius);font-family:var(--font-mono)"></div>
+
             <div class="arch-grid" style="grid-template-columns:1fr 1fr;gap:16px">
               <div class="arch-card">
                 <span class="layer-num">1. PARTICULATE PROFILE</span>
@@ -1525,9 +1652,12 @@ git push origin main
 
           <!-- Console View 6: Regulatory Letterhead Notice -->
           <div id="c-print" class="c-view">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
               <span style="font-size:13px;color:var(--text-muted)">High-contrast double-bordered official representation under Section 19(5) of India's Air Act, 1981.</span>
-              <button id="cBtnPrintNotice" class="btn primary small">Print / Save as PDF</button>
+              <div style="display:flex;gap:8px">
+                <button id="cBtnDownloadNoticeTxt" class="btn small" type="button" title="Download clean plain-text Section 19(5) Air Act memo">📥 Download Notice (.txt)</button>
+                <button id="cBtnPrintNotice" class="btn primary small" type="button">Print / Save as PDF</button>
+              </div>
             </div>
             <div id="cPrintNoticeSheet" style="background:#fff;color:#111;padding:24px 32px;border:3px double #111;font-family:Georgia,serif;font-size:12px;line-height:1.5">
               <!-- Rendered Notice Content -->
@@ -1723,8 +1853,13 @@ git push origin main
         activeId: null,
         map: null,
         markerLayer: null,
+        tileLayers: {},
+        currentLayer: 'dark',
+        showCones: true,
+        tempPinMarker: null,
         markers: new Map(),
-        circles: new Map()
+        circles: new Map(),
+        cones: new Map()
       };
 
       const severityColors = {
@@ -1897,10 +2032,54 @@ git push origin main
         });
       }
 
+      const FSM_ORDER = ['Reported', 'Validated', 'Assessed', 'ResponseActive', 'Documented', 'Resolved', 'Archived'];
+
+      function getNextFsmState(current) {
+        const idx = FSM_ORDER.indexOf(current);
+        if (idx === -1 || idx >= FSM_ORDER.length - 1) return null;
+        return FSM_ORDER[idx + 1];
+      }
+
       function renderDossier(item) {
         if (!item) return;
         const a = item.analysis || {};
-        byId('cDossierProfile').innerHTML = `<p>${escapeHtml(a.particulate_profile || 'No particulate profile provided.')}</p>`;
+
+        // Update FSM Lifecycle Status & Transitions
+        const curState = item.lifecycle_state || 'Reported';
+        const nextState = getNextFsmState(curState);
+        const badge = byId('dossierStateBadge');
+        if (badge) {
+          badge.textContent = curState;
+          badge.className = 'tag ' + (curState === 'Resolved' || curState === 'Archived' ? 'cyan' : curState === 'ResponseActive' ? 'live' : 'emerald');
+        }
+        const nextLabel = byId('dossierNextTransition');
+        if (nextLabel) {
+          nextLabel.textContent = nextState ? `→ Next Allowed: ${nextState}` : '✓ Terminal State (Resolved/Archived)';
+        }
+        const advanceBtn = byId('btnAdvanceState');
+        if (advanceBtn) {
+          advanceBtn.disabled = !nextState;
+        }
+        
+        let profileHtml = `<p>${escapeHtml(a.particulate_profile || 'No particulate profile provided.')}</p>`;
+        if (item.latitude && item.longitude) {
+          const lat = Number(item.latitude), lng = Number(item.longitude);
+          profileHtml += `
+            <div style="margin-top:12px;padding:10px;background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.3);border-radius:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--cyan)">📍 GPS: ${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E</span>
+              <div style="display:flex;gap:6px">
+                <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" rel="noopener noreferrer" class="btn small primary" style="gap:4px">
+                  🗺️ Google Maps
+                </a>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener noreferrer" class="btn small" style="gap:4px">
+                  🚗 Directions
+                </a>
+                <button type="button" class="btn small" onclick="window.pvPanToMap(${lat}, ${lng})">🎯 Center Map</button>
+              </div>
+            </div>
+          `;
+        }
+        byId('cDossierProfile').innerHTML = profileHtml;
 
         const protocols = Array.isArray(a.immediate_protocol) ? a.immediate_protocol : [a.immediate_protocol || ''];
         byId('cDossierProtocols').innerHTML = protocols.length
@@ -1911,6 +2090,22 @@ git push origin main
         byId('cDossierLegal').innerHTML = `<p>${escapeHtml(a.statutory_memo || 'Consult competent environmental authority.')}</p>`;
 
         renderPrintSheet(item);
+      }
+
+      function calculatePlumeCone(startLat, startLng, lengthMeters, bearingDeg = 225, spreadDeg = 24) {
+        const rad = deg => deg * Math.PI / 180;
+        const R = 6378137;
+        function destPoint(lat1, lon1, dist, bearing) {
+          const b = rad(bearing), p1 = rad(lat1), l1 = rad(lon1);
+          const p2 = Math.asin(Math.sin(p1) * Math.cos(dist / R) + Math.cos(p1) * Math.sin(dist / R) * Math.cos(b));
+          const l2 = l1 + Math.atan2(Math.sin(b) * Math.sin(dist / R) * Math.cos(p1), Math.cos(dist / R) - Math.sin(p1) * Math.sin(p2));
+          return [p2 * 180 / Math.PI, l2 * 180 / Math.PI];
+        }
+        const tip = [startLat, startLng];
+        const rightEdge = destPoint(startLat, startLng, lengthMeters, bearingDeg - spreadDeg);
+        const centerEdge = destPoint(startLat, startLng, lengthMeters * 1.15, bearingDeg);
+        const leftEdge = destPoint(startLat, startLng, lengthMeters + 10, bearingDeg + spreadDeg);
+        return [tip, rightEdge, centerEdge, leftEdge];
       }
 
       function renderPrintSheet(item) {
@@ -1931,7 +2126,7 @@ git push origin main
             <div style="text-align:right"><strong>Severity:</strong> ${escapeHtml(item.severity)}<br><strong>Source:</strong> ${escapeHtml(item.source)}</div>
           </div>
           <p><strong>Locality:</strong> ${escapeHtml(item.zone)}</p>
-          ${item.latitude ? `<p><strong>Coordinates:</strong> ${escapeHtml(item.latitude)}° N, ${escapeHtml(item.longitude)}° E</p>` : ''}
+          ${item.latitude ? `<p><strong>Coordinates:</strong> ${escapeHtml(item.latitude)}° N, ${escapeHtml(item.longitude)}° E — <a href="https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}" target="_blank" style="color:#0284c7;text-decoration:underline">Verify on Google Maps</a></p>` : ''}
           <p><strong>Field Notes:</strong> ${escapeHtml(item.notes || 'None')}</p>
           <h4 style="margin:8px 0 4px;font-size:10pt">Qualitative Chemical Profile:</h4>
           <p style="font-size:9pt">${escapeHtml(a.particulate_profile || '')}</p>
@@ -1962,11 +2157,19 @@ git push origin main
         }
       }
 
+      window.pvPanToMap = (lat, lng) => {
+        switchConsoleTab('c-map');
+        if (state.map) {
+          state.map.setView([lat, lng], 14);
+        }
+      };
+
       function renderMap() {
         if (!state.map || !state.markerLayer) return;
         state.markerLayer.clearLayers();
         state.markers.clear();
         state.circles.clear();
+        state.cones.clear();
 
         state.incidents.forEach(item => {
           if (item.latitude === null || item.longitude === null) return;
@@ -1974,25 +2177,124 @@ git push origin main
           const col = severityColors[item.severity] || severityColors.Moderate;
           const radius = item.severity === 'Severe' ? 250 : (item.severity === 'High' ? 120 : 60);
 
-          const c = L.circle([lat, lng], { radius, color: col, weight: 1, dashArray: '3, 6', fillColor: col, fillOpacity: 0.12 }).addTo(state.markerLayer);
+          // 1. Downwind dispersion hazard cone vector
+          if (state.showCones) {
+            const coneLength = item.severity === 'Severe' ? 380 : (item.severity === 'High' ? 200 : 100);
+            const conePoints = calculatePlumeCone(lat, lng, coneLength, 225, 24);
+            const conePoly = L.polygon(conePoints, {
+              color: col,
+              weight: 1,
+              dashArray: '2, 4',
+              fillColor: col,
+              fillOpacity: item.severity === 'Severe' ? 0.22 : 0.15
+            }).addTo(state.markerLayer);
+            conePoly.bindTooltip(`Downwind Dispersion Plume (${coneLength}m)`, { sticky: true });
+            state.cones.set(item.incident_id, conePoly);
+          }
+
+          // 2. Safe physical cordon boundary circle
+          const c = L.circle([lat, lng], {
+            radius,
+            color: col,
+            weight: 1.5,
+            dashArray: '4, 6',
+            fillColor: col,
+            fillOpacity: 0.08
+          }).addTo(state.markerLayer);
           state.circles.set(item.incident_id, c);
 
-          const m = L.circleMarker([lat, lng], { radius: item.severity === 'Severe' ? 8 : 6, color: '#fff', weight: 1.5, fillColor: col, fillOpacity: 0.95 }).addTo(state.markerLayer);
-          m.bindPopup(`<strong>${escapeHtml(item.zone)}</strong><br>${escapeHtml(item.source)}<br><strong style="color:${col}">${escapeHtml(item.severity)}</strong><br><button class="btn small primary" style="margin-top:4px" onclick="window.pvInspectMap('${escapeHtml(item.incident_id)}')">Inspect Dossier</button>`);
+          // 3. Central emission point marker
+          const m = L.circleMarker([lat, lng], {
+            radius: item.severity === 'Severe' ? 8 : 6,
+            color: '#fff',
+            weight: 2,
+            fillColor: col,
+            fillOpacity: 0.95
+          }).addTo(state.markerLayer);
+
+          const popupContent = `
+            <div style="font-size:12px;min-width:210px">
+              <strong style="color:#fff;font-size:13px">${escapeHtml(item.zone)}</strong><br>
+              <span style="color:var(--text-muted);font-size:11px">${escapeHtml(item.source)}</span><br>
+              <div style="margin:4px 0">
+                <span style="color:${col};font-weight:700;font-family:var(--font-mono)">${escapeHtml(item.severity)} Hazard</span>
+                <span style="color:var(--text-dim);font-size:10px"> · ${radius}m cordon</span><br>
+                <span style="font-size:11px;color:var(--text-muted)">FSM State: <strong style="color:var(--cyan)">${escapeHtml(item.lifecycle_state || 'Reported')}</strong></span>
+              </div>
+              <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">
+                <button class="btn small primary" style="font-size:10px;padding:3px 7px" onclick="window.pvInspectMap('${escapeHtml(item.incident_id)}')">Inspect Dossier</button>
+                <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" rel="noopener noreferrer" class="btn small" style="font-size:10px;padding:3px 7px;background:#1e293b;border-color:#334155;color:#38bdf8">🗺️ Google Maps</a>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener noreferrer" class="btn small" style="font-size:10px;padding:3px 7px;background:#1e293b;border-color:#334155;color:#fff">🚗 Directions</a>
+              </div>
+            </div>
+          `;
+
+          m.bindPopup(popupContent);
           m.on('click', () => selectIncident(item.incident_id, false));
           state.markers.set(item.incident_id, m);
         });
       }
+
       window.pvInspectMap = id => {
         selectIncident(id, false);
         switchConsoleTab('c-dossier');
       };
 
+      window.pvApplyPinnedCoords = (lat, lng) => {
+        const latInp = byId('cLat'), lngInp = byId('cLng');
+        if (latInp) latInp.value = lat.toFixed(4);
+        if (lngInp) lngInp.value = lng.toFixed(4);
+        switchConsoleTab('c-intake');
+      };
+
       function initMap() {
         if (!window.L) return;
         state.map = L.map('map', { attributionControl: false }).setView([10.9205, 78.7410], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(state.map);
+
+        // Multi-Layer Tile Engines
+        state.tileLayers = {
+          dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }),
+          satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+          street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })
+        };
+
+        state.tileLayers.dark.addTo(state.map);
         state.markerLayer = L.layerGroup().addTo(state.map);
+
+        // Live Cursor Coordinates HUD
+        state.map.on('mousemove', (e) => {
+          const el = byId('mapCursorCoords');
+          if (el) el.textContent = `${e.latlng.lat.toFixed(4)}° N, ${e.latlng.lng.toFixed(4)}° E`;
+        });
+
+        // Click-to-Pin Interactive Location Picker
+        state.map.on('click', (e) => {
+          const { lat, lng } = e.latlng;
+          if (state.tempPinMarker) state.map.removeLayer(state.tempPinMarker);
+
+          state.tempPinMarker = L.circleMarker([lat, lng], {
+            radius: 8,
+            color: '#22d3ee',
+            weight: 2,
+            fillColor: '#06b6d4',
+            fillOpacity: 0.9
+          }).addTo(state.map);
+
+          state.tempPinMarker.bindPopup(`
+            <div style="font-size:12px">
+              <strong style="color:var(--cyan)">📍 Pinned Location</strong><br>
+              <span style="font-family:var(--font-mono);font-size:11px">${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E</span>
+              <div style="margin-top:6px;display:flex;gap:4px">
+                <button class="btn small primary" onclick="window.pvApplyPinnedCoords(${lat}, ${lng})">Apply to Intake Form</button>
+                <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" rel="noopener noreferrer" class="btn small">Google Maps</a>
+              </div>
+            </div>
+          `).openPopup();
+
+          const latInp = byId('cLat'), lngInp = byId('cLng');
+          if (latInp) latInp.value = lat.toFixed(4);
+          if (lngInp) lngInp.value = lng.toFixed(4);
+        });
       }
 
       function switchConsoleTab(tabId) {
@@ -2006,6 +2308,96 @@ git push origin main
       // Event Listeners
       document.querySelectorAll('.c-tab').forEach(b => {
         b.addEventListener('click', () => switchConsoleTab(b.getAttribute('data-target')));
+      });
+
+      // Basemap Layer Switcher
+      document.querySelectorAll('.map-layer-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-layer');
+          document.querySelectorAll('.map-layer-btn').forEach(b => b.classList.toggle('active', b === btn));
+          if (!state.map) return;
+          Object.values(state.tileLayers).forEach(l => state.map.removeLayer(l));
+          if (state.tileLayers[target]) {
+            state.tileLayers[target].addTo(state.map);
+          }
+          const attr = byId('mapLayerAttribution');
+          if (attr) {
+            if (target === 'satellite') attr.textContent = 'Tiles: Esri World Imagery (High-Resolution Satellite Aerial)';
+            else if (target === 'street') attr.textContent = 'Tiles: OpenStreetMap Carto (Standard Street/Road Topo)';
+            else attr.textContent = 'Tiles: CartoDB Dark Matter (High-Contrast Tactical)';
+          }
+        });
+      });
+
+      byId('mapBtnFitAll')?.addEventListener('click', () => {
+        const coords = state.incidents.filter(x => x.latitude && x.longitude).map(x => [Number(x.latitude), Number(x.longitude)]);
+        if (coords.length && state.map) {
+          state.map.fitBounds(coords, { padding: [40, 40] });
+        }
+      });
+
+      byId('mapBtnToggleCones')?.addEventListener('click', () => {
+        state.showCones = !state.showCones;
+        const btn = byId('mapBtnToggleCones');
+        if (btn) btn.textContent = state.showCones ? '💨 Plume Vectors: ON' : '💨 Plume Vectors: OFF';
+        renderMap();
+      });
+
+      byId('mapBtnLocate')?.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported by your browser.');
+          return;
+        }
+        byId('mapBtnLocate').textContent = 'Acquiring GPS...';
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const { latitude, longitude } = pos.coords;
+            if (state.map) {
+              state.map.setView([latitude, longitude], 15);
+              if (state.tempPinMarker) state.map.removeLayer(state.tempPinMarker);
+              state.tempPinMarker = L.circleMarker([latitude, longitude], {
+                radius: 8, color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.95
+              }).addTo(state.map);
+              state.tempPinMarker.bindPopup(`<strong>📍 Current Device Location</strong><br>${latitude.toFixed(4)}° N, ${longitude.toFixed(4)}° E<br><button class="btn small primary" style="margin-top:4px" onclick="window.pvApplyPinnedCoords(${latitude}, ${longitude})">Apply to Intake Form</button>`).openPopup();
+              const latInp = byId('cLat'), lngInp = byId('cLng');
+              if (latInp) latInp.value = latitude.toFixed(4);
+              if (lngInp) lngInp.value = longitude.toFixed(4);
+            }
+            byId('mapBtnLocate').textContent = '📍 Locate Me';
+          },
+          err => {
+            alert('Could not acquire device GPS: ' + err.message);
+            byId('mapBtnLocate').textContent = '📍 Locate Me';
+          },
+          { timeout: 8000, enableHighAccuracy: true }
+        );
+      });
+
+      byId('btnMapPickCoord')?.addEventListener('click', () => {
+        switchConsoleTab('c-map');
+        alert('🎯 Click anywhere on the map to pin coordinates for your report.');
+      });
+
+      byId('btnMyGpsCoord')?.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported by your browser.');
+          return;
+        }
+        byId('btnMyGpsCoord').textContent = 'Acquiring...';
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const { latitude, longitude } = pos.coords;
+            const latInp = byId('cLat'), lngInp = byId('cLng');
+            if (latInp) latInp.value = latitude.toFixed(4);
+            if (lngInp) lngInp.value = longitude.toFixed(4);
+            byId('btnMyGpsCoord').textContent = '📍 Use Device GPS';
+          },
+          err => {
+            alert('Could not acquire GPS: ' + err.message);
+            byId('btnMyGpsCoord').textContent = '📍 Use Device GPS';
+          },
+          { timeout: 8000, enableHighAccuracy: true }
+        );
       });
 
       byId('cBtnLoadSample')?.addEventListener('click', () => {
@@ -2133,6 +2525,157 @@ git push origin main
 
       byId('cBtnPrintNotice')?.addEventListener('click', () => window.print());
 
+      byId('cBtnDownloadNoticeTxt')?.addEventListener('click', () => {
+        const item = state.incidents.find(x => x.incident_id === state.activeId) || state.incidents[0];
+        if (!item) {
+          alert('No incident selected.');
+          return;
+        }
+        const a = item.analysis || {};
+        const lat = item.latitude ? Number(item.latitude).toFixed(4) : null;
+        const lng = item.longitude ? Number(item.longitude).toFixed(4) : null;
+        const gpsLine = lat && lng 
+          ? `GPS Coordinates: ${lat}° N, ${lng}° E\nGoogle Maps: https://www.google.com/maps/search/?api=1&query=${lat},${lng}\nDriving Directions: https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+          : 'GPS Coordinates: NOT RECORDED';
+
+        const txtContent = `================================================================================\n` +
+`PRANA-VAYU (प्राण-वायु) — AIR POLLUTION INCIDENT REPORT & STATUTORY MEMO\n` +
+`Developer: SARVEPALLI AUDI SIVA BHANUVARDHAN | Brand: AS PHENIX\n` +
+`Framework: Bharat Builds Environmental Hacks Air Track\n` +
+`================================================================================\n` +
+`DRAFT FOR ADMINISTRATIVE REVIEW — NOT AN ENFORCEMENT ORDER\n\n` +
+`1. INCIDENT REGISTRY\n` +
+`--------------------\n` +
+`Incident Reference: ${item.incident_id}\n` +
+`Recorded Timestamp: ${item.iso_date || new Date(item.timestamp * 1000).toISOString()}\n` +
+`Lifecycle FSM State: ${item.lifecycle_state || 'Reported'}\n` +
+`Jurisdiction: ${item.jurisdiction || 'India'}\n` +
+`Zone / Locality: ${item.zone || 'Unspecified'}\n` +
+`Contaminant Source: ${item.source || 'General combustion'}\n` +
+`Assessed Severity: ${item.severity || 'Moderate'}\n` +
+`${gpsLine}\n\n` +
+`Observational Field Notes:\n` +
+`${item.notes || 'No observational field notes recorded.'}\n\n` +
+`2. QUALITATIVE PARTICULATE PROFILE\n` +
+`-----------------------------------\n` +
+`${a.particulate_profile || 'Combustion products include inhalable fine particles, carbon monoxide, and volatile organic vapors.'}\n\n` +
+`CALIBRATED POLLUTANT METRICS:\n` +
+`PM2.5: NULL (UNMEASURED)\n` +
+`PM10:  NULL (UNMEASURED)\n` +
+`NOx:   NULL (UNMEASURED)\n` +
+`VOCs:  NULL (UNMEASURED)\n` +
+`* In strict adherence to anti-vibe-coding data integrity standards, no calibrated sensor values are simulated or fabricated.\n\n` +
+`3. IMMEDIATE OPERATIONAL MITIGATION PROTOCOL\n` +
+`---------------------------------------------\n` +
+`${Array.isArray(a.immediate_protocol) ? a.immediate_protocol.map((p, i) => `[${i+1}] ${p}`).join('\n') : a.immediate_protocol || 'Maintain safe distance.'}\n\n` +
+`4. LONG-TERM ENVIRONMENTAL ENGINEERING\n` +
+`--------------------------------------\n` +
+`${a.long_term_engineering || 'Evaluate composting solutions and plant high-APTI native vegetative buffers (Peepal, Neem, Kaner).'}\n\n` +
+`5. STATUTORY LEGAL REFERRAL\n` +
+`----------------------------\n` +
+`${a.statutory_memo || 'Section 19(5) Air (Prevention and Control of Pollution) Act, 1981.'}\n\n` +
+`================================================================================\n` +
+`Generated by PRANA-VAYU Native Systems Engine\n` +
+`Architectural Attribution: Sarvepalli Audi Siva Bhanuvardhan (AS PHENIX)\n` +
+`GitHub: https://github.com/Sarvepalliaudi/prana-vayu\n` +
+`================================================================================\n`;
+
+        const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = `prana-vayu-notice-${item.incident_id}.txt`;
+        downloadLink.click();
+      });
+
+      byId('btnConnectRust')?.addEventListener('click', () => {
+        const input = byId('awsEndpointInput');
+        if (input) input.value = 'http://127.0.0.1:8080';
+        localStorage.setItem(ENDPOINT_KEY, 'http://127.0.0.1:8080');
+        updateAwsStatus();
+        syncWithAws(true);
+      });
+
+      byId('btnAdvanceState')?.addEventListener('click', async () => {
+        const item = state.incidents.find(x => x.incident_id === state.activeId) || state.incidents[0];
+        if (!item) return;
+        const curState = item.lifecycle_state || 'Reported';
+        const nextState = getNextFsmState(curState);
+        if (!nextState) return;
+
+        const fb = byId('dossierFsmFeedback');
+        const ep = getAwsEndpoint();
+
+        if (ep) {
+          if (fb) {
+            fb.textContent = `Dispatching transition (${curState} → ${nextState}) to backend engine...`;
+            fb.style.display = 'block';
+            fb.style.background = 'rgba(6,182,212,0.1)';
+            fb.style.color = 'var(--cyan)';
+            fb.style.border = '1px solid var(--cyan-border)';
+          }
+          try {
+            const res = await fetch(`${ep}/incidents/transition`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({ incident_id: item.incident_id, target_state: nextState })
+            });
+            if (!res.ok) {
+              const errText = await res.text();
+              throw new Error(`HTTP ${res.status}: ${errText}`);
+            }
+            const updated = await res.json();
+            item.lifecycle_state = updated.lifecycle_state || nextState;
+            if (fb) {
+              fb.textContent = `✓ Backend confirmed transition: ${curState} → ${item.lifecycle_state}`;
+              fb.style.color = 'var(--accent)';
+              fb.style.borderColor = 'var(--accent-border)';
+            }
+          } catch (err) {
+            console.warn('Backend transition failed, falling back to verified local FSM:', err);
+            item.lifecycle_state = nextState;
+            if (fb) {
+              fb.textContent = `Backend unreachable (${err.message}). Transitioned locally: ${curState} → ${nextState}`;
+              fb.style.color = 'var(--warning)';
+              fb.style.borderColor = 'var(--warning-border)';
+            }
+          }
+        } else {
+          item.lifecycle_state = nextState;
+          if (fb) {
+            fb.textContent = `✓ FSM State transitioned locally: ${curState} → ${nextState}`;
+            fb.style.display = 'block';
+            fb.style.background = 'rgba(16,185,129,0.1)';
+            fb.style.color = 'var(--accent)';
+            fb.style.border = '1px solid var(--accent-border)';
+          }
+        }
+
+        saveData();
+        renderTable();
+        renderMap();
+        renderDossier(item);
+        setTimeout(() => { if (fb) fb.style.display = 'none'; }, 4000);
+      });
+
+      byId('btnResetState')?.addEventListener('click', () => {
+        const item = state.incidents.find(x => x.incident_id === state.activeId) || state.incidents[0];
+        if (!item) return;
+        item.lifecycle_state = 'Reported';
+        saveData();
+        renderTable();
+        renderMap();
+        renderDossier(item);
+        const fb = byId('dossierFsmFeedback');
+        if (fb) {
+          fb.textContent = `↺ Lifecycle state reset to 'Reported'.`;
+          fb.style.display = 'block';
+          fb.style.background = 'rgba(245,158,11,0.1)';
+          fb.style.color = 'var(--warning)';
+          fb.style.border = '1px solid var(--warning-border)';
+          setTimeout(() => { fb.style.display = 'none'; }, 3000);
+        }
+      });
+
       byId('btnSaveEndpoint')?.addEventListener('click', () => {
         const val = (byId('awsEndpointInput')?.value || '').trim();
         localStorage.setItem(ENDPOINT_KEY, val);
@@ -2148,6 +2691,30 @@ git push origin main
         if (statusSpan) {
           statusSpan.textContent = 'Disconnected. Operating in local sandbox mode.';
           statusSpan.style.color = 'var(--text-dim)';
+        }
+      });
+
+      // Code Block Copy Snippet Buttons
+      document.querySelectorAll('.code-window').forEach(win => {
+        const header = win.querySelector('.code-header');
+        const code = win.querySelector('.code-body code');
+        if (header && code) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn small';
+          btn.style.cssText = 'padding:2px 8px;font-size:10px;margin-left:auto;';
+          btn.textContent = '📋 Copy';
+          btn.title = 'Copy snippet to clipboard';
+          btn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(code.innerText);
+              btn.textContent = '✓ Copied!';
+              setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
+            } catch {
+              btn.textContent = 'Error';
+            }
+          });
+          header.appendChild(btn);
         }
       });
 
