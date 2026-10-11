@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="PRANA-VAYU: Hyper-local micro-climate air pollution incident-response and regulatory evidence console.">
-  <title>PRANA-VAYU (प्राण-वायु) | Environmental Operations Console</title>
+  <meta name="description" content="PRANA-VAYU: Operational air-pollution incident response, evidence review, and community action platform.">
+  <title>PRANA-VAYU | Air Incident Operations Console</title>
 
-  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <!-- Typography: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -19,35 +19,38 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #070b14;
-      --bg-alt: #0a0f1d;
-      --surface: #0f172a;
-      --surface-hover: #162238;
-      --surface-card: #0d1527;
-      --border: #1e293b;
+      --bg: #090d16;
+      --bg-alt: #0c1220;
+      --surface: #131b2e;
+      --surface-card: #0f172a;
+      --surface-hover: #19233c;
+      --border: #222f4c;
+      --border-light: #2d3e63;
       --border-focus: #38bdf8;
-      --border-accent: #0284c7;
-      --text: #f1f5f9;
+      
+      --text: #e5e7eb;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
       
       --accent: #10b981;
-      --accent-glow: rgba(16, 185, 129, 0.25);
+      --accent-bg: rgba(16, 185, 129, 0.12);
+      --accent-border: #059669;
+      
       --danger: #ef4444;
-      --danger-bg: rgba(239, 68, 68, 0.15);
-      --danger-glow: rgba(239, 68, 68, 0.3);
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --danger-border: #b91c1c;
+      
       --warning: #f59e0b;
-      --warning-bg: rgba(245, 158, 11, 0.15);
-      --cyan: #06b6d4;
-      --cyan-glow: rgba(6, 182, 212, 0.25);
-      --blue: #3b82f6;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --warning-border: #d97706;
+      
+      --cyan: #22d3ee;
+      --cyan-bg: rgba(34, 211, 238, 0.12);
+      --cyan-border: #0284c7;
       
       --radius-sm: 4px;
-      --radius: 8px;
-      --radius-lg: 12px;
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
-      --shadow-glow: 0 0 15px rgba(6, 182, 212, 0.15);
-      --shadow-danger: 0 0 15px rgba(239, 68, 68, 0.2);
+      --radius: 6px;
+      --radius-lg: 8px;
       
       --font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
@@ -61,25 +64,21 @@
 
     body {
       background: var(--bg);
-      background-image: 
-        radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
       color: var(--text);
       font-family: var(--font-ui);
       font-size: 13px;
       line-height: 1.5;
       min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
     }
 
     a {
       color: var(--cyan);
       text-decoration: none;
-      transition: color 0.15s ease;
     }
 
     a:hover {
-      color: #67e8f9;
       text-decoration: underline;
     }
 
@@ -98,14 +97,16 @@
       outline-offset: 2px;
     }
 
-    /* Container Shell */
-    .shell {
-      max-width: 1920px;
+    /* Main Container */
+    .app-shell {
+      max-width: 1720px;
       margin: 0 auto;
-      padding: 14px 20px 24px;
+      padding: 12px 18px 24px;
+      width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
+      flex: 1;
     }
 
     /* Top Command Header */
@@ -114,46 +115,37 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(10, 15, 29, 0.95) 100%);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 12px 18px;
-      box-shadow: var(--shadow-sm);
-      backdrop-filter: blur(10px);
+      padding: 12px 16px;
     }
 
-    .brand-group {
+    .brand-section {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #0284c7 0%, #10b981 100%);
+    .brand-badge-icon {
+      width: 36px;
+      height: 36px;
+      background: #0284c7;
       border-radius: var(--radius);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 14px;
       flex-shrink: 0;
     }
 
-    .brand-logo svg {
-      width: 24px;
-      height: 24px;
-      fill: none;
-      stroke: #fff;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .brand-text h1 {
-      font-size: 18px;
+    .brand-title h1 {
+      font-size: 17px;
       font-weight: 800;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       color: #fff;
       display: flex;
       align-items: center;
@@ -161,23 +153,23 @@
       margin: 0;
     }
 
-    .brand-text h1 span.sanskrit {
-      font-size: 14px;
+    .brand-title h1 span.sanskrit {
+      font-size: 12px;
       font-weight: 500;
       color: var(--cyan);
-      background: rgba(6, 182, 212, 0.12);
-      padding: 2px 7px;
+      background: var(--cyan-bg);
+      border: 1px solid var(--cyan-border);
+      padding: 1px 6px;
       border-radius: 4px;
-      border: 1px solid rgba(6, 182, 212, 0.3);
     }
 
-    .brand-text p {
+    .brand-title p {
       font-size: 11px;
       color: var(--text-muted);
       margin: 2px 0 0;
     }
 
-    .header-controls {
+    .header-status-group {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
@@ -185,178 +177,122 @@
       gap: 8px;
     }
 
-    /* Badges & Indicators */
-    .badge {
+    .status-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(30, 41, 59, 0.6);
+      background: #0d1527;
       border: 1px solid var(--border);
       padding: 4px 10px;
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       font-size: 11px;
       font-weight: 600;
       font-family: var(--font-mono);
-      letter-spacing: 0.04em;
       color: var(--text-muted);
     }
 
-    .badge .dot {
+    .status-pill .indicator-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
       background: var(--text-dim);
     }
 
-    .badge.live {
+    .status-pill.live {
       color: var(--accent);
-      border-color: rgba(16, 185, 129, 0.4);
-      background: rgba(16, 185, 129, 0.1);
+      border-color: var(--accent-border);
+      background: var(--accent-bg);
     }
 
-    .badge.live .dot {
+    .status-pill.live .indicator-dot {
       background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-      animation: pulse 2s infinite;
     }
 
-    .badge.demo {
+    .status-pill.demo {
       color: var(--warning);
-      border-color: rgba(245, 158, 11, 0.4);
-      background: rgba(245, 158, 11, 0.08);
+      border-color: var(--warning-border);
+      background: var(--warning-bg);
     }
 
-    .badge.demo .dot {
+    .status-pill.demo .indicator-dot {
       background: var(--warning);
-      box-shadow: 0 0 6px var(--warning);
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
+    .status-pill.error {
+      color: var(--danger);
+      border-color: var(--danger-border);
+      background: var(--danger-bg);
     }
 
-    /* Author Social Bar */
-    .author-bar {
+    .status-pill.error .indicator-dot {
+      background: var(--danger);
+    }
+
+    /* Operational Navigation Tabs */
+    .nav-tabs-bar {
       display: flex;
       align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      font-size: 11px;
-      color: var(--text-muted);
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 6px 14px;
-    }
-
-    .author-bar .label {
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 10px;
-    }
-
-    .author-bar .divider {
-      color: var(--border);
-    }
-
-    .author-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      color: var(--text);
-      padding: 2px 7px;
-      border-radius: 4px;
-      background: rgba(30, 41, 59, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      transition: all 0.15s ease;
-    }
-
-    .author-link:hover {
-      background: rgba(30, 41, 59, 0.8);
-      border-color: var(--cyan);
-      color: var(--cyan);
-      text-decoration: none;
-    }
-
-    /* Audio Toggle Button */
-    .icon-btn {
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      border-radius: 6px;
-      padding: 5px 9px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-weight: 500;
-      transition: all 0.15s ease;
-    }
-
-    .icon-btn:hover {
-      border-color: var(--cyan);
-      color: var(--text);
-    }
-
-    .icon-btn.active {
-      color: var(--cyan);
-      border-color: var(--cyan);
-      background: rgba(6, 182, 212, 0.1);
-    }
-
-    /* API Configuration Strip */
-    .api-strip {
-      display: grid;
-      grid-template-columns: auto minmax(220px, 1fr) auto auto;
-      gap: 10px;
-      align-items: center;
+      gap: 4px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 9px 14px;
+      padding: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
 
-    .api-strip label {
-      font-size: 12px;
-      font-weight: 600;
+    .nav-tabs-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
       color: var(--text-muted);
-      white-space: nowrap;
-    }
-
-    .api-strip input {
-      background: #090e1a;
-      border: 1px solid var(--border);
+      padding: 7px 12px;
       border-radius: var(--radius-sm);
-      color: var(--text);
-      font-family: var(--font-mono);
+      font-weight: 600;
       font-size: 12px;
-      padding: 7px 10px;
-      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.12s ease;
     }
 
-    .api-strip input:focus {
-      border-color: var(--cyan);
-    }
-
-    .api-status-hint {
-      grid-column: 1 / -1;
-      font-size: 11px;
-      color: var(--text-dim);
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 2px;
-    }
-
-    /* Buttons */
-    .btn {
-      background: #1e293b;
-      border: 1px solid #334155;
+    .tab-btn:hover {
       color: var(--text);
-      padding: 7px 14px;
+      background: var(--surface-hover);
+    }
+
+    .tab-btn.active {
+      background: #1c2744;
+      color: #fff;
+      border-color: #3b507d;
+    }
+
+    .tab-btn .badge-count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1px 5px;
+      border-radius: 10px;
+      color: var(--cyan);
+    }
+
+    .nav-actions-right {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+      padding-left: 8px;
+    }
+
+    /* Common Buttons */
+    .btn {
+      background: #1a253e;
+      border: 1px solid #2d3e63;
+      color: var(--text);
+      padding: 6px 12px;
       border-radius: var(--radius-sm);
       font-weight: 600;
       font-size: 12px;
@@ -364,37 +300,30 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: all 0.15s ease;
+      transition: all 0.12s ease;
       white-space: nowrap;
     }
 
     .btn:hover:not(:disabled) {
-      background: #334155;
-      border-color: #475569;
+      background: #253354;
+      border-color: #435b8f;
     }
 
     .btn.primary {
       background: #047857;
       border-color: #059669;
       color: #fff;
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
     }
 
     .btn.primary:hover:not(:disabled) {
       background: #059669;
       border-color: #10b981;
-      box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
     }
 
-    .btn.cyan {
-      background: #0369a1;
-      border-color: #0284c7;
+    .btn.danger {
+      background: #7f1d1d;
+      border-color: #991b1b;
       color: #fff;
-    }
-
-    .btn.cyan:hover:not(:disabled) {
-      background: #0284c7;
-      border-color: #38bdf8;
     }
 
     .btn.small {
@@ -407,27 +336,29 @@
       cursor: not-allowed;
     }
 
-    /* Main Workspace Layout */
-    .workspace {
-      display: grid;
-      grid-template-columns: 380px minmax(0, 1fr);
-      gap: 14px;
-      align-items: start;
+    /* Content Views */
+    .view-content {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    /* Common Panels */
+    .view-content.active {
+      display: flex;
+    }
+
+    /* Common Panel Card */
     .panel {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
     .panel-head {
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: var(--bg-alt);
       border-bottom: 1px solid var(--border);
       display: flex;
@@ -442,43 +373,111 @@
       gap: 8px;
     }
 
-    .panel-title .num {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--cyan);
-      background: rgba(6, 182, 212, 0.12);
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid rgba(6, 182, 212, 0.25);
-    }
-
     .panel-title h2,
     .panel-title h3 {
       font-size: 13px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
       margin: 0;
       color: var(--text);
     }
 
     .panel-body {
-      padding: 16px;
+      padding: 14px;
     }
 
-    /* Triage Form */
+    /* Overview Grid */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-card .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+
+    .stat-card .val {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+
+    .stat-card .hint {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Three-Tier Role Guide */
+    .role-guide-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .role-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .role-card .role-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .role-card p {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .role-card ul {
+      padding-left: 16px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    /* Form Design */
     .form-grid {
       display: grid;
-      gap: 13px;
+      gap: 12px;
+      max-width: 820px;
     }
 
     .field {
       display: grid;
-      gap: 5px;
+      gap: 4px;
     }
 
-    .field-header {
+    .field-label-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -492,10 +491,10 @@
       letter-spacing: 0.04em;
     }
 
-    .field .counter {
-      font-family: var(--font-mono);
-      font-size: 10px;
+    .field .help-text {
+      font-size: 11px;
       color: var(--text-dim);
+      line-height: 1.4;
     }
 
     .field input,
@@ -507,135 +506,71 @@
       border-radius: var(--radius-sm);
       color: var(--text);
       padding: 8px 10px;
-      transition: border-color 0.15s ease;
     }
 
     .field input:focus,
     .field select:focus,
     .field textarea:focus {
-      border-color: var(--cyan);
+      border-color: var(--border-focus);
       background: #0c1424;
     }
 
     .field textarea {
-      min-height: 84px;
+      min-height: 80px;
       resize: vertical;
-      line-height: 1.45;
     }
 
-    .field .help {
-      font-size: 11px;
-      color: var(--text-dim);
-      line-height: 1.4;
-    }
-
-    .coords-row {
+    .coords-split {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
 
-    .coord-actions {
+    .coords-bar {
       display: flex;
       gap: 6px;
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
-    .coord-actions .btn {
+    .coords-bar .btn {
       flex: 1;
-      font-size: 10px;
+      font-size: 11px;
       padding: 4px 6px;
     }
 
-    .form-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .form-actions-bar {
+      display: flex;
       gap: 8px;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
-    .form-status {
-      font-size: 11px;
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      background: rgba(30, 41, 59, 0.4);
+    .feedback-banner {
+      padding: 10px 14px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-
-    /* Right Stack */
-    .right-stack {
+      font-size: 12px;
       display: flex;
-      flex-direction: column;
-      gap: 14px;
-      min-width: 0;
-    }
-
-    /* Map Section */
-    .map-wrap {
-      height: 380px;
-      position: relative;
-      background: #090e1a;
-    }
-
-    #map {
-      height: 100%;
-      width: 100%;
-    }
-
-    .map-toolbar {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 1000;
-      display: flex;
-      gap: 6px;
-    }
-
-    .map-toolbar .btn {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(4px);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    }
-
-    .map-legend {
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 8px 12px;
-      font-size: 11px;
-      color: var(--text);
-      line-height: 1.7;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .legend-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .panel-footer-note {
-      font-size: 11px;
-      color: var(--text-dim);
-      padding: 9px 16px;
+      align-items: flex-start;
+      gap: 8px;
       background: var(--bg-alt);
-      border-top: 1px solid var(--border);
-      line-height: 1.4;
     }
 
-    /* Filter & Search Bar */
-    .registry-filters {
+    .feedback-banner.success {
+      background: var(--accent-bg);
+      border-color: var(--accent-border);
+      color: #a7f3d0;
+    }
+
+    .feedback-banner.error {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: #fca5a5;
+    }
+
+    /* Registry Table */
+    .registry-controls {
       display: grid;
-      grid-template-columns: minmax(180px, 2fr) 1fr 1fr auto;
+      grid-template-columns: minmax(180px, 2fr) 1fr 1fr 1fr auto;
       gap: 8px;
       padding: 10px 14px;
       background: var(--bg-alt);
@@ -643,51 +578,25 @@
       align-items: center;
     }
 
-    .registry-filters input,
-    .registry-filters select {
+    .registry-controls input,
+    .registry-controls select {
       background: #090e1a;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       color: var(--text);
-      padding: 6px 9px;
+      padding: 6px 8px;
       font-size: 11px;
     }
 
-    .chip-group {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-    }
-
-    .chip {
-      background: #1e293b;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 3px 8px;
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.15s ease;
-    }
-
-    .chip:hover, .chip.active {
-      color: var(--text);
-      border-color: var(--cyan);
-      background: rgba(6, 182, 212, 0.15);
-    }
-
-    /* Incident Table */
-    .table-wrap {
+    .table-container {
       overflow-x: auto;
-      max-height: 340px;
+      max-height: 480px;
     }
 
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 720px;
+      min-width: 820px;
       font-size: 12px;
     }
 
@@ -707,7 +616,7 @@
       letter-spacing: 0.04em;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 2;
     }
 
     tbody tr {
@@ -719,12 +628,12 @@
       background: rgba(30, 41, 59, 0.4);
     }
 
-    tbody tr.selected {
-      background: rgba(6, 182, 212, 0.12);
+    tbody tr.active-row {
+      background: rgba(6, 182, 212, 0.14);
       border-left: 3px solid var(--cyan);
     }
 
-    .sev-badge {
+    .badge-sev {
       display: inline-block;
       padding: 2px 7px;
       border-radius: 4px;
@@ -735,30 +644,76 @@
       letter-spacing: 0.04em;
     }
 
-    .sev-badge.severe {
+    .badge-sev.severe {
       color: #fca5a5;
       background: rgba(239, 68, 68, 0.2);
       border: 1px solid rgba(239, 68, 68, 0.5);
     }
 
-    .sev-badge.high {
+    .badge-sev.high {
       color: #fde68a;
       background: rgba(245, 158, 11, 0.2);
       border: 1px solid rgba(245, 158, 11, 0.5);
     }
 
-    .sev-badge.moderate {
+    .badge-sev.moderate {
       color: #a5f3fc;
       background: rgba(6, 182, 212, 0.2);
       border: 1px solid rgba(6, 182, 212, 0.5);
     }
 
-    /* Environmental Research Dossier */
+    .badge-status {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* Map View */
+    .map-box {
+      height: 480px;
+      position: relative;
+      background: #090e1a;
+      width: 100%;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    .map-legend {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Research Dossier */
     .dossier-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
-      padding: 14px;
     }
 
     .dossier-card {
@@ -771,10 +726,6 @@
       gap: 8px;
     }
 
-    .dossier-card.full-span {
-      grid-column: 1 / -1;
-    }
-
     .dossier-card h4 {
       font-size: 11px;
       font-weight: 700;
@@ -782,100 +733,100 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
-    .dossier-card p {
+    .dossier-card p,
+    .dossier-card li {
       font-size: 12px;
       color: #cbd5e1;
-      line-height: 1.55;
-      margin: 0;
+      line-height: 1.5;
     }
 
     .dossier-card ul {
-      margin: 0;
       padding-left: 18px;
-      color: #cbd5e1;
-      font-size: 12px;
-      line-height: 1.55;
     }
 
-    .dossier-card li {
-      margin-bottom: 4px;
-    }
-
-    .dossier-card li:last-child {
-      margin-bottom: 0;
-    }
-
-    /* Sensor Null Metrics Warning HUD */
-    .metrics-hud {
+    .sensor-truth-hud {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-top: 8px;
+      gap: 6px;
+      margin-top: 6px;
       padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .metric-box {
-      background: rgba(11, 17, 32, 0.7);
+    .sensor-truth-box {
+      background: #090e1a;
       border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      padding: 6px;
       text-align: center;
     }
 
-    .metric-val {
+    .sensor-truth-box .val {
       font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-dim);
     }
 
-    .metric-lbl {
+    .sensor-truth-box .lbl {
       font-size: 9px;
       color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
-    /* Pancha Bhoota Exposure Ratio Card */
-    .bhoota-banner {
-      background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      border-radius: var(--radius);
-      padding: 10px 14px;
+    /* Follow-Up / Workflow View */
+    .workflow-timeline {
       display: flex;
+      gap: 8px;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      margin: 12px 0;
+      overflow-x: auto;
     }
 
-    .bhoota-title {
+    .workflow-step {
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: #0d1527;
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 700;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    .workflow-step.completed {
+      border-color: var(--accent-border);
+      color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .workflow-step.current {
+      border-color: var(--cyan-border);
       color: var(--cyan);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      background: var(--cyan-bg);
+      font-weight: 700;
     }
 
-    .bhoota-desc {
-      font-size: 11px;
-      color: #cbd5e1;
+    .action-log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
     }
 
-    /* Regulatory Letterhead Generator */
-    .letterhead-controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .action-log-item {
+      padding: 8px 12px;
+      background: #090e1a;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
     }
 
-    /* Print Preview Modal / Section */
-    .print-preview-modal {
+    /* Print Preview Modal & Paper */
+    .modal-backdrop {
       display: none;
       position: fixed;
       top: 0;
@@ -886,601 +837,690 @@
       z-index: 9999;
       padding: 20px;
       overflow-y: auto;
-      backdrop-filter: blur(6px);
     }
 
-    .print-preview-modal.open {
+    .modal-backdrop.open {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    .print-preview-sheet {
+    .print-sheet {
       background: #ffffff;
       color: #111827;
       width: 100%;
-      max-width: 820px;
-      padding: 35px 45px;
+      max-width: 800px;
+      padding: 36px 44px;
       border-radius: 4px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       font-family: Georgia, 'Times New Roman', serif;
       font-size: 13px;
       line-height: 1.5;
     }
 
-    .modal-actions-bar {
-      width: 100%;
-      max-width: 820px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
     /* Footer */
-    .footer {
+    .app-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
-      padding: 14px 18px;
+      padding: 12px 18px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       font-size: 11px;
       color: var(--text-dim);
+      margin-top: auto;
     }
 
-    .footer a {
-      color: var(--text-muted);
-    }
-
-    /* Leaflet popup overrides */
-    .leaflet-popup-content-wrapper {
-      background: #0f172a !important;
-      color: #f1f5f9 !important;
-      border: 1px solid #334155 !important;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
-      border-radius: 8px !important;
-    }
-
-    .leaflet-popup-tip {
-      background: #0f172a !important;
-    }
-
-    /* Print media styling */
+    /* Print media format */
     @media print {
       body {
         background: #fff !important;
         color: #000 !important;
-        font: 11pt/1.45 Georgia, "Times New Roman", serif !important;
       }
-
-      .shell, .print-preview-modal {
+      .app-shell, .modal-backdrop {
         display: none !important;
       }
-
-      #printNotice {
+      #printPaperContainer {
         display: block !important;
-        background: #fff !important;
+        padding: 20mm !important;
+      }
+      #printPaperContainer * {
         color: #000 !important;
-        padding: 15mm 20mm !important;
-      }
-
-      #printNotice * {
-        color: #000 !important;
-      }
-
-      .notice-paper-header {
-        border-bottom: 2px solid #000;
-        padding-bottom: 12px;
-        margin-bottom: 16px;
-        text-align: center;
-      }
-
-      .notice-paper-title {
-        font-size: 16pt;
-        font-weight: bold;
-        letter-spacing: 1px;
-      }
-
-      .notice-stamp {
-        border: 2px solid #a00;
-        color: #a00 !important;
-        display: inline-block;
-        padding: 4px 10px;
-        font-weight: bold;
-        letter-spacing: 1.5px;
-        margin-bottom: 8px;
-      }
-
-      .notice-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin: 14px 0;
-      }
-
-      .notice-signatures {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 50px;
-        margin-top: 60px;
-      }
-
-      .notice-sign-line {
-        border-top: 1px solid #000;
-        padding-top: 6px;
       }
     }
 
-    /* Hidden utility */
-    .hidden {
-      display: none !important;
-    }
-
-    /* Responsive Media Queries */
-    @media (max-width: 1200px) {
-      .workspace {
-        grid-template-columns: 340px minmax(0, 1fr);
-      }
-      .metrics-hud {
+    /* Responsive */
+    @media (max-width: 980px) {
+      .overview-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-    }
-
-    @media (max-width: 980px) {
-      .workspace {
+      .role-guide-grid {
         grid-template-columns: 1fr;
-      }
-      .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .header-controls {
-        width: 100%;
-        justify-content: flex-start;
-      }
-      .api-strip {
-        grid-template-columns: 1fr 1fr;
-      }
-      .api-strip input {
-        grid-column: 1 / -1;
       }
       .dossier-grid {
         grid-template-columns: 1fr;
       }
-      .letterhead-controls {
+      .registry-controls {
+        grid-template-columns: 1fr 1fr;
+      }
+      .coords-split {
         grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 640px) {
-      .shell {
-        padding: 10px;
+      .app-shell {
+        padding: 8px;
       }
-      .brand-group {
-        flex-direction: row;
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
       }
-      .registry-filters {
+      .overview-grid {
         grid-template-columns: 1fr;
       }
-      .coords-row {
+      .registry-controls {
         grid-template-columns: 1fr;
       }
-      .form-actions {
-        grid-template-columns: 1fr;
-      }
-      .map-wrap {
-        height: 290px;
+      .form-actions-bar {
+        flex-direction: column;
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="shell">
-    <!-- Top Command Header -->
+  <div class="app-shell">
+    <!-- Top Header -->
     <header class="topbar">
-      <div class="brand-group">
-        <div class="brand-logo" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
-          </svg>
-        </div>
-        <div class="brand-text">
+      <div class="brand-section">
+        <div class="brand-badge-icon" aria-hidden="true">PV</div>
+        <div class="brand-title">
           <h1>
             PRANA-VAYU <span class="sanskrit">प्राण-वायु</span>
           </h1>
-          <p>Tactical Micro-Climate Incident Operations · Bharat Builds Environmental Hacks (Air Track)</p>
+          <p>Community Environmental Incident Response Platform · Brand: <strong>AS PHENIX</strong></p>
         </div>
       </div>
 
-      <div class="header-controls">
-        <button id="soundToggleBtn" class="icon-btn active" title="Toggle tactical sound synthesis" aria-label="Toggle tactical audio">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-          </svg>
-          <span id="soundLabel">AUDIO ON</span>
+      <div class="header-status-group">
+        <span id="connectionBadge" class="status-pill demo">
+          <span class="indicator-dot"></span>
+          <span id="connectionText">LOCAL DEMO MODE</span>
+        </span>
+        <button id="quickReportNavBtn" class="btn primary small" title="Create a new observation report">
+          + Report Incident
         </button>
-        <span id="connectionBadge" class="badge demo"><span class="dot"></span>LOCAL DEMO MODE</span>
-        <span class="badge"><span class="dot" style="background:var(--cyan)"></span>AI ENGINE READY</span>
       </div>
     </header>
 
-    <!-- Author & Institutional Attribution Bar -->
-    <nav class="author-bar" aria-label="Developer and project metadata">
-      <span class="label">Lead Architect:</span>
-      <a class="author-link" href="https://www.linkedin.com/in/audi-siva-bhanuvardhan-sarvepalli-4598a8289/" target="_blank" rel="noopener noreferrer">
-        Sarvepalli Audi Siva Bhanuvardhan (LinkedIn)
-      </a>
-      <span class="divider">/</span>
-      <a class="author-link" href="https://github.com/Sarvepalliaudi/" target="_blank" rel="noopener noreferrer">
-        GitHub
-      </a>
-      <span class="divider">/</span>
-      <a class="author-link" href="https://sarvepalliaudi.github.io/asphenixnewprotofolio/" target="_blank" rel="noopener noreferrer">
-        Portfolio
-      </a>
-      <span class="divider">/</span>
-      <a class="author-link" href="https://asphenix-rrq5sx5.gamma.site/" target="_blank" rel="noopener noreferrer">
-        AS PHENIX (Brand)
-      </a>
+    <!-- Operational Navigation Tabs -->
+    <nav class="nav-tabs-bar" role="tablist" aria-label="Operational views">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab-overview">
+        Overview
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-intake">
+        Incident Intake
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-registry">
+        Incident Registry <span id="tabCountBadge" class="badge-count">0</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-map">
+        Incident Map
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-dossier">
+        Research Dossier
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-workflow">
+        Follow-Up &amp; Action
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-reports">
+        Printable Reports
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-settings">
+        Settings &amp; Cloud API
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-about">
+        About &amp; Attribution
+      </button>
     </nav>
 
-    <!-- Cloud API Configuration Bar -->
-    <section class="api-strip" aria-label="AWS API Gateway configuration">
-      <label for="apiUrl">AWS API Gateway HTTP API:</label>
-      <input id="apiUrl" type="url" placeholder="https://xxxxxx.execute-api.region.amazonaws.com" autocomplete="url" aria-describedby="apiHelp">
-      <button id="saveApi" class="btn">Save Endpoint</button>
-      <button id="syncBtn" class="btn primary">Manual Sync</button>
-      <div id="apiHelp" class="api-status-hint">
-        <span>Endpoint is stored in browser localStorage. Leave blank to run fully autonomous local demo mode.</span>
-        <span id="lastSyncStatus">Last sync: Initializing</span>
-      </div>
-    </section>
-
-    <!-- Pancha Bhoota Philosophical Principle Banner -->
-    <section class="bhoota-banner" aria-label="Cosmological foundation banner">
-      <div>
-        <div class="bhoota-title">Pancha Bhoota Law of Biological Criticality (पंचभूत)</div>
-        <div class="bhoota-desc">
-          Humans survive weeks without Prithvi (food), days without Jala (water), hours without Agni (warmth), but under 3 minutes without clean Vayu. Micro-plumes are acute emergencies.
+    <!-- VIEW 1: OVERVIEW -->
+    <section id="tab-overview" class="view-content active" role="tabpanel">
+      <!-- Stat Cards -->
+      <div class="overview-grid">
+        <div class="stat-card">
+          <span class="label">Total Incidents Recorded</span>
+          <span class="val" id="statTotalIncidents">0</span>
+          <span class="hint">Active in local / synchronized registry</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Severe Plumes</span>
+          <span class="val" id="statSevereIncidents" style="color:var(--danger)">0</span>
+          <span class="hint">Require immediate 15-min intervention</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Mapped Locations</span>
+          <span class="val" id="statMappedIncidents" style="color:var(--cyan)">0</span>
+          <span class="hint">With verified latitude and longitude</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Operational State</span>
+          <span class="val" id="statOperationalState" style="font-size:16px;color:var(--warning)">READY (LOCAL)</span>
+          <span class="hint" id="statSyncTime">Last sync: Autonomous local mode</span>
         </div>
       </div>
-      <button id="quickSampleBtn" class="btn small cyan" title="Pre-fill form with verified sample incident">Load Sample Scenario</button>
-    </section>
 
-    <!-- Main Operational Workspace Grid -->
-    <main class="workspace">
-      <!-- Left Column: Incident Intake & Triage -->
-      <aside class="panel">
+      <!-- Stakeholder Operational Model Guide -->
+      <section class="panel">
         <div class="panel-head">
           <div class="panel-title">
-            <span class="num">01</span>
-            <h2>Incident Intake &amp; Triage</h2>
+            <h3>Three-Tier Community Action Workflow</h3>
           </div>
-          <span class="badge" style="color:var(--cyan)">FIELD OBSERVER</span>
+          <span class="badge-status">Observe → Report → Protect → Escalate</span>
         </div>
         <div class="panel-body">
-          <form id="incidentForm" class="form-grid">
+          <div class="role-guide-grid">
+            <div class="role-card">
+              <div class="role-title">
+                <span>1. Ground Spotters</span>
+                <span style="color:var(--cyan)">NSS / NCC / Students</span>
+              </div>
+              <p>Volunteers who observe suspected micro-climate plumes (leaf burning, vehicle idling, road dust).</p>
+              <ul>
+                <li>Record verified GPS location &amp; visible conditions</li>
+                <li>Never approach fires or confront operators</li>
+                <li>Submit structured observations into PRANA-VAYU</li>
+              </ul>
+            </div>
+            <div class="role-card">
+              <div class="role-title">
+                <span>2. Community Gatekeepers</span>
+                <span style="color:var(--warning)">Principals / Wardens</span>
+              </div>
+              <p>Campus estate managers and administrators who review incoming triage reports.</p>
+              <ul>
+                <li>Deploy 15-minute aqueous hose dousing on smoldering leaves</li>
+                <li>Reroute pedestrian corridors 120m upwind</li>
+                <li>Throttle ground-floor HVAC fresh air intakes</li>
+              </ul>
+            </div>
+            <div class="role-card">
+              <div class="role-title">
+                <span>3. Statutory Regulators</span>
+                <span style="color:var(--danger)">State PCBs / Municipalities</span>
+              </div>
+              <p>Authorized personnel who review draft administrative representations and record statutory action.</p>
+              <ul>
+                <li>Section 19(5) Air (Prevention &amp; Control of Pollution) Act, 1981</li>
+                <li>Section 31A statutory directions and penal sanctions</li>
+                <li>Formal double-bordered printable representation notices</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Action Jump Banner -->
+      <section class="panel" style="background:#0f172a">
+        <div class="panel-body" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <h4 style="font-size:13px;color:#fff;margin-bottom:2px">Ready to log a micro-climate air pollution incident?</h4>
+            <p style="color:var(--text-muted);font-size:12px">Select from pre-loaded verified scenarios or log a real field observation point.</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="overviewLoadSampleBtn" class="btn small">Load Verified Sample</button>
+            <button id="overviewGoIntakeBtn" class="btn primary small">+ Open Report Form</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW 2: INCIDENT INTAKE -->
+    <section id="tab-intake" class="view-content" role="tabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <h3>Field Incident Intake &amp; Triage Form</h3>
+          </div>
+          <span class="badge-status">Field Observer Input</span>
+        </div>
+        <div class="panel-body">
+          <div id="intakeFeedbackBanner" class="feedback-banner" style="display:none;margin-bottom:14px" role="alert"></div>
+
+          <form id="intakeForm" class="form-grid">
             <div class="field">
-              <label for="jurisdiction">Jurisdiction</label>
-              <select id="jurisdiction" name="jurisdiction" required>
+              <div class="field-label-row">
+                <label for="formJurisdiction">Jurisdiction</label>
+              </div>
+              <select id="formJurisdiction" required>
                 <option value="India">India (Air Act 1981 / CPCB / SPCB)</option>
                 <option value="US">US (Clean Air Act / EPA / State SIP)</option>
                 <option value="UK">UK (Environment Act 2021 / Defra)</option>
                 <option value="EU">EU (Ambient Air Quality Directive)</option>
                 <option value="Global">Global / International Reference</option>
               </select>
+              <span class="help-text">Jurisdiction determines the applicable statutory legal routing memo.</span>
             </div>
 
             <div class="field">
-              <div class="field-header">
-                <label for="zone">Micro-Climate Zone / Locality</label>
-                <span id="zoneCount" class="counter">0/180</span>
+              <div class="field-label-row">
+                <label for="formZone">Zone / Locality Description</label>
+                <span id="zoneCharCount" class="help-text">0/180</span>
               </div>
-              <input id="zone" name="zone" maxlength="180" required placeholder="e.g. Samayapuram Campus, Gate 4 Ditch">
-              <span class="help">Enter specific perimeter or building corridor. Coordinates are not inferred from text.</span>
+              <input id="formZone" maxlength="180" required placeholder="e.g. Samayapuram University Perimeter, North Gate Ditch">
+              <span class="help-text">Describe the specific perimeter or campus area. Coordinates are not inferred from this text.</span>
             </div>
 
             <div class="field">
-              <label for="source">Pollution Source Category</label>
-              <select id="source" name="source" required>
-                <option value="Biomass burning">Biomass burning (Perimeter leaves, agricultural stubble)</option>
-                <option value="Vehicle idling">Vehicle idling (Diesel transport bus, school gate fleet)</option>
-                <option value="Silica dust">Silica dust (Unmitigated construction, road cutting)</option>
-                <option value="Kitchen exhaust">Kitchen exhaust (Commercial diesel/wood combustion)</option>
-                <option value="Perimeter waste combustion">Perimeter waste combustion (Mixed MSW/plastics)</option>
+              <div class="field-label-row">
+                <label for="formSource">Contaminant Source Category</label>
+              </div>
+              <select id="formSource" required>
+                <option value="Biomass burning">Biomass burning (Perimeter leaves, agricultural stubble, garden waste)</option>
+                <option value="Vehicle idling">Vehicle idling (Diesel transport bus, school gate fleet idling >10 min)</option>
+                <option value="Silica dust">Silica dust (Unmitigated construction cutting, road excavation dust)</option>
+                <option value="Kitchen exhaust">Kitchen exhaust (Commercial wood/charcoal/diesel food prep)</option>
+                <option value="Perimeter waste combustion">Perimeter waste combustion (Mixed plastics, municipal solid waste)</option>
               </select>
             </div>
 
             <div class="field">
-              <label for="severity">Triage Severity Rating</label>
-              <select id="severity" name="severity" required>
+              <div class="field-label-row">
+                <label for="formSeverity">Observer Triage Severity</label>
+              </div>
+              <select id="formSeverity" required>
                 <option value="Moderate">Moderate (Localized nuisance, low pedestrian impact)</option>
-                <option value="High">High (Corridor smoke affecting campus ingress/egress)</option>
-                <option value="Severe">Severe (Dense plume penetrating classroom/hostel intakes)</option>
+                <option value="High">High (Corridor smoke affecting student/commuter ingress)</option>
+                <option value="Severe">Severe (Dense plume penetrating classroom/hostel ventilation)</option>
               </select>
-              <span class="help">Visual triage category only. Does not assert an instrumented AQI measurement.</span>
+              <span class="help-text">Visual triage rating only. Does not assert an instrumented sensor concentration.</span>
             </div>
 
             <div class="field">
-              <div class="field-header">
-                <label for="notes">Observations &amp; Exposed Context</label>
-                <span id="notesCount" class="counter">0/3000</span>
+              <div class="field-label-row">
+                <label for="formNotes">Observations &amp; Exposed Context</label>
+                <span id="notesCharCount" class="help-text">0/3000</span>
               </div>
-              <textarea id="notes" name="notes" maxlength="3000" placeholder="Describe plume color, wind drift direction, proximity to classrooms/dormitories, and observed duration. Do not approach hazardous fires."></textarea>
-              <span class="help">Safety Rule: Volunteers must NEVER confront operators or approach hazardous smoke.</span>
+              <textarea id="formNotes" maxlength="3000" placeholder="Describe plume color, wind drift direction, proximity to classrooms/hostels, and observed duration. Do not approach hazardous smoke."></textarea>
+              <span class="help-text">Safety reminder: Field observers must never confront operators or approach burning piles.</span>
             </div>
 
             <div class="field">
-              <label>GPS Coordinates (Verified Observation Point)</label>
-              <div class="coords-row">
-                <input id="lat" name="lat" type="number" min="-90" max="90" step="any" placeholder="Latitude (e.g. 10.9205)">
-                <input id="lng" name="lng" type="number" min="-180" max="180" step="any" placeholder="Longitude (e.g. 78.7410)">
+              <div class="field-label-row">
+                <label>Observed GPS Coordinates (Optional)</label>
               </div>
-              <div class="coord-actions">
-                <button type="button" id="useGpsBtn" class="btn small">Acquire GPS</button>
-                <button type="button" id="pinMapBtn" class="btn small">Click Map to Pin</button>
-                <button type="button" id="clearCoordsBtn" class="btn small">Clear Coords</button>
+              <div class="coords-split">
+                <input id="formLat" type="number" min="-90" max="90" step="any" placeholder="Latitude (e.g. 10.9205)">
+                <input id="formLng" type="number" min="-180" max="180" step="any" placeholder="Longitude (e.g. 78.7410)">
               </div>
+              <div class="coords-bar">
+                <button type="button" id="btnAcquireGps" class="btn small">Acquire Device GPS</button>
+                <button type="button" id="btnPinFromMap" class="btn small">Pick Location on Map</button>
+                <button type="button" id="btnClearCoords" class="btn small">Clear Coords</button>
+              </div>
+              <span class="help-text">Both latitude and longitude must be provided together, or both left blank.</span>
             </div>
 
-            <div class="form-actions">
-              <button class="btn primary" type="submit" id="submitBtn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 5v14M5 12h14"/>
-                </svg>
-                Log Incident
+            <div class="form-actions-bar">
+              <button type="submit" id="btnSubmitIntake" class="btn primary">
+                Submit Observation Report
               </button>
-              <button class="btn" type="button" id="resetForm">Clear Form</button>
-            </div>
-
-            <div id="formStatus" class="form-status" role="status" aria-live="polite">
-              Ready for incident input. Records persist in local browser storage or sync to AWS.
+              <button type="button" id="btnClearForm" class="btn">
+                Clear Form
+              </button>
+              <button type="button" id="btnFillSample" class="btn small">
+                Pre-Fill Sample Scenario
+              </button>
             </div>
           </form>
         </div>
-      </aside>
+      </div>
+    </section>
 
-      <!-- Right Column: Interactive Map, Registry, Dossier, Letterhead -->
-      <section class="right-stack">
-        <!-- Panel 02: Interactive Leaflet Map with Plume Radii -->
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title">
-              <span class="num">02</span>
-              <h3>Geospatial Incident Plume Grid</h3>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span id="mapCount" class="badge">0 MAPPED</span>
-              <button id="fitMapBtn" class="btn small" title="Fit all mapped incidents">Center View</button>
-            </div>
+    <!-- VIEW 3: INCIDENT REGISTRY -->
+    <section id="tab-registry" class="view-content" role="tabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <h3>Reported Incident Registry</h3>
           </div>
-          <div class="map-wrap">
-            <div id="map" role="application" aria-label="Interactive map displaying reported air pollution incidents"></div>
+          <div style="display:flex;gap:6px">
+            <button id="btnExportRegistryJson" class="btn small">Export JSON</button>
+            <button id="btnSyncRegistry" class="btn small primary">Manual Sync</button>
           </div>
-          <div class="panel-footer-note">
-            Plotted points reflect verified observer coordinates. Circles indicate simulated 60m–250m downwind dispersion cordon boundaries.
-          </div>
-        </section>
+        </div>
 
-        <!-- Panel 03: Searchable Incident Registry Table -->
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title">
-              <span class="num">03</span>
-              <h3>Incident Registry &amp; Telemetry</h3>
-            </div>
-            <div style="display:flex;gap:6px">
-              <button id="exportBtn" class="btn small">Export JSON</button>
-              <button id="clearDemoBtn" class="btn small">Reset to Demo</button>
-            </div>
-          </div>
+        <!-- Filter and Search Row -->
+        <div class="registry-controls">
+          <input id="regSearchInput" type="search" placeholder="Search zone, notes, ID, or source…" aria-label="Search incident registry">
+          <select id="regSeverityFilter" aria-label="Filter by severity">
+            <option value="">All Severities</option>
+            <option value="Severe">Severe</option>
+            <option value="High">High</option>
+            <option value="Moderate">Moderate</option>
+          </select>
+          <select id="regJurisdictionFilter" aria-label="Filter by jurisdiction">
+            <option value="">All Jurisdictions</option>
+            <option value="India">India</option>
+            <option value="US">US</option>
+            <option value="UK">UK</option>
+            <option value="EU">EU</option>
+            <option value="Global">Global</option>
+          </select>
+          <select id="regStatusFilter" aria-label="Filter by lifecycle status">
+            <option value="">All Statuses</option>
+            <option value="Reported">Reported</option>
+            <option value="Validated">Validated</option>
+            <option value="Assessed">Assessed</option>
+            <option value="ResponseActive">Response Active</option>
+            <option value="Documented">Documented</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+          <button id="btnResetFilters" class="btn small">Reset</button>
+        </div>
 
-          <!-- Real-Time Filter & Search Strip -->
-          <div class="registry-filters">
-            <input id="registrySearch" type="search" placeholder="Search zone, notes, ID, or source…" aria-label="Search incident registry">
-            <select id="filterSeverity" aria-label="Filter by severity">
-              <option value="">All Severities</option>
-              <option value="Severe">Severe Only</option>
-              <option value="High">High Only</option>
-              <option value="Moderate">Moderate Only</option>
-            </select>
-            <select id="filterJurisdiction" aria-label="Filter by jurisdiction">
-              <option value="">All Jurisdictions</option>
-              <option value="India">India</option>
-              <option value="US">US</option>
-              <option value="UK">UK</option>
-              <option value="EU">EU</option>
-              <option value="Global">Global</option>
-            </select>
-            <div class="chip-group">
-              <span class="chip active" data-filter="ALL" id="chipAll">All (<span id="countAll">0</span>)</span>
-              <span class="chip" data-filter="Severe" id="chipSevere">Severe (<span id="countSevere">0</span>)</span>
-            </div>
-          </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Incident ID</th>
+                <th>Zone / Locality</th>
+                <th>Jurisdiction</th>
+                <th>Source</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="registryTableBody">
+              <tr>
+                <td colspan="8" style="text-align:center;padding:24px;color:var(--text-dim)">
+                  Loading incident registry…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Incident ID</th>
-                  <th>Zone / Locality</th>
-                  <th>Jurisdiction</th>
-                  <th>Source</th>
-                  <th>Severity</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="incidentRows">
-                <tr>
-                  <td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">
-                    Loading incident registry…
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+    <!-- VIEW 4: INCIDENT MAP -->
+    <section id="tab-map" class="view-content" role="tabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <h3>Geospatial Micro-Climate Map</h3>
           </div>
-          <div class="panel-footer-note">
-            Registry persists in DynamoDB when connected via AWS API Gateway, with full offline local storage resilience.
+          <div style="display:flex;align-items:center;gap:6px">
+            <span id="mapPointCounter" class="badge-status">0 Plotted</span>
+            <button id="btnFitMapExtent" class="btn small">Center View</button>
           </div>
-        </section>
+        </div>
+        <div class="map-box">
+          <div id="map" role="application" aria-label="Geospatial map of air pollution incidents"></div>
+        </div>
+        <div style="padding:10px 14px;background:var(--bg-alt);border-top:1px solid var(--border);font-size:11px;color:var(--text-dim)">
+          Markers display verified field observer coordinates. Radial boundaries denote 60m–250m simulated downwind plume buffer cordons. Click any marker to view its dossier.
+        </div>
+      </div>
+    </section>
 
-        <!-- Panel 04: Environmental Research Dossier -->
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title">
-              <span class="num">04</span>
-              <h3>Qualitative Environmental Research Dossier</h3>
-            </div>
-            <span id="dossierProviderBadge" class="badge demo">DETERMINISTIC FALLBACK</span>
+    <!-- VIEW 5: RESEARCH DOSSIER -->
+    <section id="tab-dossier" class="view-content" role="tabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <h3>Qualitative Environmental Research Dossier</h3>
           </div>
-
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="dossierActiveIdBadge" class="status-pill demo">NO INCIDENT SELECTED</span>
+            <button id="btnDossierPrintDraft" class="btn small primary">Generate Official Notice</button>
+          </div>
+        </div>
+        <div class="panel-body">
           <div class="dossier-grid">
-            <!-- Particulate & Chemical Profile Card -->
+            <!-- 1. Environmental Profile -->
             <article class="dossier-card">
-              <h4>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                Chemical &amp; Particulate Speciation
-              </h4>
-              <div id="particulateProfile">
-                <p>Select or submit an incident to view its qualitative chemical profile.</p>
+              <h4>1. Particulate &amp; Chemical Profile</h4>
+              <div id="dosParticulateProfile">
+                <p>Select an incident in the Registry or Map to view its qualitative chemical profile.</p>
               </div>
 
-              <!-- Sensor Readings Truth HUD (Explicitly Null) -->
-              <div class="metrics-hud">
-                <div class="metric-box">
-                  <div class="metric-val" id="pm25Val">—</div>
-                  <div class="metric-lbl">PM2.5 (Unmeasured)</div>
+              <!-- Unmeasured Sensor Truth HUD -->
+              <div class="sensor-truth-hud">
+                <div class="sensor-truth-box">
+                  <div class="val">NULL</div>
+                  <div class="lbl">PM2.5 (Unmeasured)</div>
                 </div>
-                <div class="metric-box">
-                  <div class="metric-val" id="pm10Val">—</div>
-                  <div class="metric-lbl">PM10 (Unmeasured)</div>
+                <div class="sensor-truth-box">
+                  <div class="val">NULL</div>
+                  <div class="lbl">PM10 (Unmeasured)</div>
                 </div>
-                <div class="metric-box">
-                  <div class="metric-val" id="noxVal">—</div>
-                  <div class="metric-lbl">NOx (Unmeasured)</div>
+                <div class="sensor-truth-box">
+                  <div class="val">NULL</div>
+                  <div class="lbl">NOx (Unmeasured)</div>
                 </div>
-                <div class="metric-box">
-                  <div class="metric-val" id="vocVal">—</div>
-                  <div class="metric-lbl">VOCs (Unmeasured)</div>
+                <div class="sensor-truth-box">
+                  <div class="val">NULL</div>
+                  <div class="lbl">VOCs (Unmeasured)</div>
                 </div>
               </div>
+              <span style="font-size:10px;color:var(--text-dim);font-style:italic">
+                Compliance Note: PRANA-VAYU never invents sensor concentrations. Quantitative fields remain null without certified reference monitors.
+              </span>
             </article>
 
-            <!-- Immediate Physical Protocols -->
+            <!-- 2. Immediate Safety Actions -->
             <article class="dossier-card">
-              <h4>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                </svg>
-                24-Hour Immediate Physical Actions
-              </h4>
-              <div id="immediateProtocol">
+              <h4>2. Immediate Physical Protocols (24-Hour)</h4>
+              <div id="dosImmediateProtocol">
                 <p>Prioritized non-confrontational safety actions will appear here.</p>
               </div>
             </article>
 
-            <!-- Botanical & Structural Engineering -->
+            <!-- 3. Long-Term Mitigation -->
             <article class="dossier-card">
-              <h4>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 22v-8m0 0a5 5 0 0 1 5-5h2a2 2 0 0 1 2 2v1a5 5 0 0 1-5 5h-4Z"/><path d="M12 14a5 5 0 0 0-5-5H5a2 2 0 0 0-2 2v1a5 5 0 0 0 5 5h4Z"/>
-                </svg>
-                Phytoremediation &amp; Botanical Buffer Architecture
-              </h4>
-              <div id="longTermEngineering">
-                <p>Long-term source controls and native plant buffer recommendations will appear here.</p>
+              <h4>3. Long-Term Source Control &amp; Phytoremediation</h4>
+              <div id="dosLongTermEngineering">
+                <p>Site assessment and native plant buffer recommendations will appear here.</p>
               </div>
             </article>
 
-            <!-- Statutory Regulatory Memorandum -->
+            <!-- 4. Administrative & Legal Context -->
             <article class="dossier-card">
-              <h4>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
-                </svg>
-                Jurisdiction-Aware Legal Memorandum
-              </h4>
-              <div id="statutoryMemo">
-                <p>Draft legal routing guidance (e.g. Air Act 1981 Section 19(5)) will appear here.</p>
+              <h4>4. Statutory Legal Referral Memorandum</h4>
+              <div id="dosStatutoryMemo">
+                <p>Jurisdiction-aware legal reference (e.g. Air Act 1981 Section 19(5)) will appear here.</p>
               </div>
             </article>
           </div>
-          <div class="panel-footer-note">
-            Research dossier provides qualitative decision support. Never claim AI synthesis constitutes laboratory sensor concentration.
-          </div>
-        </section>
+        </div>
+      </div>
+    </section>
 
-        <!-- Panel 05: Regulatory Letterhead Engine -->
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title">
-              <span class="num">05</span>
-              <h3>Formal Regulatory Representation Engine</h3>
-            </div>
-            <button id="previewPrintBtn" class="btn primary">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 6 2 18 2 18 9"/>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                <rect x="6" y="14" width="12" height="8"/>
-              </svg>
-              Generate Official Letterhead Notice
-            </button>
+    <!-- VIEW 6: FOLLOW-UP & WORKFLOW -->
+    <section id="tab-workflow" class="view-content" role="tabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <h3>Incident Lifecycle Follow-Up &amp; Resolution</h3>
           </div>
-          <div class="panel-body">
-            <div class="letterhead-controls">
-              <div class="field">
-                <label for="authority">Target Receiving Authority / Officer</label>
-                <input id="authority" maxlength="180" placeholder="e.g. Member Secretary, State Pollution Control Board / Ward Commissioner">
-              </div>
-              <div class="field">
-                <label for="leadName">Authorized Field Observer / NSS Officer</label>
-                <input id="leadName" maxlength="120" placeholder="e.g. Cadet Lead S. Bhanuvardhan (NSS Unit 4)">
-              </div>
-            </div>
-            <p class="help" style="margin-top:10px">
-              Prepares a high-contrast double-bordered draft administrative representation with official signature blocks. Marked as DRAFT FOR STATUTORY REVIEW.
-            </p>
+          <span id="workflowIncidentBadge" class="badge-status">NO SELECTION</span>
+        </div>
+        <div class="panel-body">
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
+            Track and advance the incident through its formal operational stages. Authorized community gatekeepers can update the lifecycle state.
+          </p>
+
+          <!-- Timeline -->
+          <div class="workflow-timeline">
+            <div id="stepReported" class="workflow-step completed">1. Reported</div>
+            <div id="stepValidated" class="workflow-step">2. Validated</div>
+            <div id="stepAssessed" class="workflow-step">3. Assessed</div>
+            <div id="stepResponseActive" class="workflow-step">4. Response Active</div>
+            <div id="stepDocumented" class="workflow-step">5. Documented</div>
+            <div id="stepResolved" class="workflow-step">6. Resolved</div>
           </div>
-        </section>
-      </section>
-    </main>
+
+          <!-- Advance Status Form -->
+          <div style="background:#090e1a;border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-top:12px">
+            <h4 style="font-size:12px;color:var(--cyan);margin-bottom:8px">Update Incident State</h4>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <select id="selectNextState" style="background:#131b2e;border:1px solid var(--border);color:#fff;padding:6px 10px;border-radius:4px">
+                <option value="Validated">Advance to: Validated</option>
+                <option value="Assessed">Advance to: Assessed</option>
+                <option value="ResponseActive">Advance to: Response Active</option>
+                <option value="Documented">Advance to: Documented</option>
+                <option value="Resolved">Advance to: Resolved</option>
+              </select>
+              <input id="inputActionLogNote" type="text" placeholder="Add follow-up note (e.g. Hose dousing deployed by groundskeeper)" style="flex:1;background:#131b2e;border:1px solid var(--border);color:#fff;padding:6px 10px;border-radius:4px;min-width:200px">
+              <button id="btnAdvanceLifecycle" class="btn primary small">Apply Update</button>
+            </div>
+          </div>
+
+          <!-- Action Log -->
+          <div style="margin-top:16px">
+            <h4 style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Follow-Up Action History</h4>
+            <div id="actionLogList" class="action-log-list">
+              <div class="action-log-item">No action history recorded yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 7: PRINTABLE REPORTS -->
+    <section id="tab-reports" class="view-content" role="tabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <h3>Administrative Representation &amp; Notice Generator</h3>
+          </div>
+          <button id="btnTriggerPrintSheet" class="btn primary small">Preview &amp; Print Notice</button>
+        </div>
+        <div class="panel-body">
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
+            Generate formal double-bordered draft administrative representations under Section 19(5) and Section 31A of India's Air Act, 1981 (or international equivalents) for review by authorized institutional officers.
+          </p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:700px">
+            <div class="field">
+              <label for="inputTargetAuthority">Target Receiving Authority</label>
+              <input id="inputTargetAuthority" maxlength="180" placeholder="e.g. Member Secretary, State Pollution Control Board / Ward Officer">
+            </div>
+            <div class="field">
+              <label for="inputFieldLeadName">Authorized Field Observer Lead</label>
+              <input id="inputFieldLeadName" maxlength="120" placeholder="e.g. S. Bhanuvardhan (Lead Observer, NSS Unit 4)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 8: SETTINGS & CLOUD SYNC -->
+    <section id="tab-settings" class="view-content" role="tabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <h3>Cloud API Gateway Configuration</h3>
+          </div>
+          <span class="badge-status">AWS Settings</span>
+        </div>
+        <div class="panel-body">
+          <div style="max-width:760px;display:flex;flex-direction:column;gap:12px">
+            <div class="field">
+              <label for="inputApiEndpoint">AWS API Gateway HTTP API Endpoint URL</label>
+              <input id="inputApiEndpoint" type="url" placeholder="https://xxxxxx.execute-api.region.amazonaws.com">
+              <span class="help-text">
+                Enter your deployed AWS HTTP API base URL. Stored locally in this browser. Leave empty to run autonomous local demo mode. Never enter AWS secret keys here.
+              </span>
+            </div>
+
+            <div style="display:flex;gap:8px">
+              <button id="btnSaveApiEndpoint" class="btn">Save Endpoint</button>
+              <button id="btnTestApiConnection" class="btn primary">Test Connection &amp; Sync</button>
+              <button id="btnClearApiEndpoint" class="btn">Clear (Use Local)</button>
+            </div>
+
+            <div id="settingsFeedback" class="feedback-banner" style="display:none"></div>
+
+            <hr style="border:0;border-top:1px solid var(--border);margin:8px 0">
+
+            <h4 style="font-size:12px;color:#fff">Local Data Management</h4>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button id="btnExportJsonDirect" class="btn small">Export Incident JSON</button>
+              <button id="btnResetToDefaultDemo" class="btn small">Reset to Seed Scenarios</button>
+              <button id="btnClearAllLocal" class="btn small danger">Clear Local Storage</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 9: ABOUT & ATTRIBUTION -->
+    <section id="tab-about" class="view-content" role="tabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <h3>About PRANA-VAYU &amp; Architectural Attribution</h3>
+          </div>
+          <span class="badge-status">AS PHENIX</span>
+        </div>
+        <div class="panel-body">
+          <div style="max-width:820px;display:flex;flex-direction:column;gap:14px;color:var(--text-muted);font-size:12px;line-height:1.55">
+            <div>
+              <h4 style="color:#fff;font-size:14px;margin-bottom:4px">Cosmological Foundation: The Pancha Bhootas (पंचभूत)</h4>
+              <p>
+                In Vedic cosmology, life exists at the intersection of the five primordial elements: <em>Prithvi</em> (Earth), <em>Jala</em> (Water), <em>Agni</em> (Fire), <em>Vayu</em> (Air), and <em>Akasha</em> (Space). While humans survive weeks without food and days without water, cellular irreversible brain death occurs in under 3 minutes without clean air. Localized air pollution must be treated as an acute, life-critical violation.
+              </p>
+            </div>
+
+            <div>
+              <h4 style="color:#fff;font-size:14px;margin-bottom:4px">Lead Architect &amp; Developer</h4>
+              <p>
+                <strong>SARVEPALLI AUDI SIVA BHANUVARDHAN</strong><br>
+                Brand: <strong>AS PHENIX</strong><br>
+                Track: Bharat Builds Environmental Hacks — Air Track
+              </p>
+            </div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+              <a href="https://www.linkedin.com/in/audi-siva-bhanuvardhan-sarvepalli-4598a8289/" target="_blank" rel="noopener noreferrer" class="btn small">LinkedIn Profile</a>
+              <a href="https://github.com/Sarvepalliaudi/" target="_blank" rel="noopener noreferrer" class="btn small">GitHub</a>
+              <a href="https://sarvepalliaudi.github.io/asphenixnewprotofolio/" target="_blank" rel="noopener noreferrer" class="btn small">Portfolio</a>
+              <a href="https://asphenix-rrq5sx5.gamma.site/" target="_blank" rel="noopener noreferrer" class="btn small">AS PHENIX Brand Space</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="app-footer">
       <div>
-        <strong>PRANA-VAYU (प्राण-वायु)</strong> · Autonomous Environmental Operations Platform · Brand: <strong>AS PHENIX</strong>
+        <strong>PRANA-VAYU</strong> · Autonomous Air Incident Operations · Lead Architect: <strong>SARVEPALLI AUDI SIVA BHANUVARDHAN</strong> (AS PHENIX)
       </div>
       <div>
-        Built by Sarvepalli Audi Siva Bhanuvardhan · <span id="footerClock">2026-10-11 UTC</span>
+        <span id="footerSyncStatusText">Local mode active</span> · <span id="footerClock">2026-10-11 UTC</span>
       </div>
     </footer>
   </div>
 
   <!-- In-Browser Printable Letterhead Modal -->
-  <div id="printModal" class="print-preview-modal" role="dialog" aria-modal="true" aria-label="Draft Notice Preview">
-    <div class="modal-actions-bar">
-      <button id="modalPrintExecBtn" class="btn primary">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
-        </svg>
-        Print / Save to PDF
-      </button>
-      <button id="modalCloseBtn" class="btn">Close Preview</button>
+  <div id="printModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Draft Notice Preview">
+    <div style="width:100%;max-width:800px;display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+      <button id="modalBtnPrintExec" class="btn primary">Print / Save as PDF</button>
+      <button id="modalBtnClose" class="btn">Close Preview</button>
     </div>
-    <div id="printModalContent" class="print-preview-sheet"></div>
+    <div id="modalPrintSheetContent" class="print-sheet"></div>
   </div>
 
-  <!-- Dedicated Print Paper Container for @media print -->
-  <div id="printNotice" class="hidden"></div>
+  <!-- Dedicated print container for @media print -->
+  <div id="printPaperContainer" style="display:none"></div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -1490,89 +1530,19 @@
     (() => {
       'use strict';
 
-      // Storage keys & constants
-      const STORAGE_KEY = 'prana-vayu-incidents-v2';
-      const API_KEY = 'prana-vayu-api-url-v2';
-      const AUDIO_KEY = 'prana-vayu-audio-enabled';
+      const STORAGE_KEY = 'prana-vayu-incidents-v3';
+      const API_ENDPOINT_KEY = 'prana-vayu-api-endpoint-v3';
 
       const byId = id => document.getElementById(id);
-
-      // Web Audio Tactical Synthesizer
-      class SoundEngine {
-        constructor() {
-          this.ctx = null;
-          this.enabled = localStorage.getItem(AUDIO_KEY) !== 'false';
-        }
-        init() {
-          if (!this.ctx && typeof AudioContext !== 'undefined') {
-            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-          }
-        }
-        toggle() {
-          this.enabled = !this.enabled;
-          localStorage.setItem(AUDIO_KEY, this.enabled);
-          return this.enabled;
-        }
-        playBleep(freq = 880, type = 'sine', duration = 0.08) {
-          if (!this.enabled) return;
-          try {
-            this.init();
-            if (this.ctx.state === 'suspended') this.ctx.resume();
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-            gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start();
-            osc.stop(this.ctx.currentTime + duration);
-          } catch (e) { /* ignore audio restrictions */ }
-        }
-        click() { this.playBleep(1200, 'triangle', 0.04); }
-        success() {
-          this.playBleep(659, 'sine', 0.08);
-          setTimeout(() => this.playBleep(880, 'sine', 0.12), 80);
-        }
-        alert() {
-          this.playBleep(440, 'sawtooth', 0.12);
-          setTimeout(() => this.playBleep(330, 'sawtooth', 0.15), 100);
-        }
-      }
-
-      const sound = new SoundEngine();
-
-      // State Object
-      const state = {
-        incidents: [],
-        activeId: null,
-        markers: new Map(),
-        circles: new Map(),
-        map: null,
-        markerLayer: null,
-        pinMode: false,
-        pinMarker: null,
-        apiUrl: '',
-        busy: false
-      };
-
-      const severityColors = {
-        Severe: '#ef4444',
-        High: '#f59e0b',
-        Moderate: '#06b6d4'
-      };
-
-      const nowIso = () => new Date().toISOString();
       const safeText = val => String(val ?? '').replace(/[<>]/g, '');
       const escapeHtml = val => String(val ?? '').replace(/[&<>"']/g, ch => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       }[ch]));
-      const uuid = () => (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'pv-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      const nowIso = () => new Date().toISOString();
       const validLatLng = (lat, lng) => Number.isFinite(Number(lat)) && Number(lat) >= -90 && Number(lat) <= 90 && Number.isFinite(Number(lng)) && Number(lng) >= -180 && Number(lng) <= 180;
 
-      // Seed verified scenarios for hackathon evaluation
-      const DEFAULT_DEMO_INCIDENTS = [
+      // Seed verified sample incidents
+      const SEED_INCIDENTS = [
         {
           incident_id: 'PV-DEMO-001',
           timestamp: Math.floor(Date.now() / 1000) - 1800,
@@ -1581,12 +1551,17 @@
           zone: 'Samayapuram University Perimeter, Gate 4',
           source: 'Biomass burning',
           severity: 'Severe',
-          notes: 'Dense leaf and mixed plastic smoldering in dry stormwater ditch directly upwind of student hostel block B fresh air intake. Thermal lofting trapped under morning inversion.',
+          lifecycle_state: 'ResponseActive',
+          notes: 'Dense leaf and mixed plastic smoldering in stormwater ditch upwind of student hostel block B intake. Plume lofting trapped under morning inversion.',
           latitude: 10.9205,
           longitude: 78.7410,
-          _local: true,
           analysis_provider: 'deterministic_fallback',
           analysis_status: 'completed',
+          _local: true,
+          action_log: [
+            { timestamp: nowIso(), note: 'Initial observation submitted by NSS Cadet Lead.' },
+            { timestamp: nowIso(), note: 'Campus warden deployed 15-minute low pressure hose dousing.' }
+          ],
           analysis: {
             particulate_profile: 'Biomass and waste smoldering emits dense Polycyclic Aromatic Hydrocarbons (PAHs), Benzo[a]pyrene, Black Carbon, and carbon monoxide. Incomplete combustion at low temperature produces acute inhalable particulate plumes without certified sensor concentration.',
             immediate_protocol: [
@@ -1594,8 +1569,7 @@
               'Establish an immediate 120-meter upwind pedestrian cordon to reroute student transit corridors away from the downwind smoke drift.'
             ],
             long_term_engineering: 'Construct dedicated composting bays for vegetative organic waste. Plant high-APTI native vegetative barriers: Peepal (Ficus religiosa, APTI 22.4, 14.2 g/m² leaf capture) and Neem (Azadirachta indica, APTI 24.8) to intercept roadside particulate drift.',
-            statutory_memo: 'India Air (Prevention and Control of Pollution) Act, 1981 Section 19(5) specifically prohibits the burning of materials causing air pollution in declared air pollution control areas. Formal notice should cite Section 31A enforcement directions and Article 21 Right to Clean Air (Subhash Kumar v. State of Bihar, 1991).',
-            analysis_origin: 'Vedic Pancha Bhoota & Indian Air Act Rules'
+            statutory_memo: 'India Air (Prevention and Control of Pollution) Act, 1981 Section 19(5) specifically prohibits the burning of materials causing air pollution in declared air pollution control areas. Formal notice should cite Section 31A enforcement directions and Article 21 Right to Clean Air (Subhash Kumar v. State of Bihar, 1991).'
           }
         },
         {
@@ -1606,12 +1580,16 @@
           zone: 'Transit Bus Ingress Gate, School Corridor',
           source: 'Vehicle idling',
           severity: 'High',
-          notes: '7 commercial diesel contract buses idling engines for >25 minutes during morning pupil drop-off window.',
+          lifecycle_state: 'Assessed',
+          notes: 'Commercial diesel contract buses idling engines for >25 minutes during morning pupil drop-off window.',
           latitude: 10.9240,
           longitude: 78.7460,
-          _local: true,
           analysis_provider: 'deterministic_fallback',
           analysis_status: 'completed',
+          _local: true,
+          action_log: [
+            { timestamp: nowIso(), note: 'Reported by commuter volunteer.' }
+          ],
           analysis: {
             particulate_profile: 'Diesel Particulate Matter (DPM), Elemental Carbon, and Nitrogen Oxides (NOx). Sub-micron diesel exhaust particles readily penetrate deep alveolar corridors, exacerbating juvenile respiratory inflammation.',
             immediate_protocol: [
@@ -1619,8 +1597,7 @@
               'Shift student arrival queue barriers 40 meters laterally away from vehicle exhaust pipe corridors.'
             ],
             long_term_engineering: 'Install staggered bus staging bays located at least 150 meters away from all school classroom fresh air intakes. Plant roadside Kaner (Nerium oleander, APTI 21.0) as low-altitude exhaust absorption barriers.',
-            statutory_memo: 'Refer to Motor Vehicles Act anti-idling regulations and State Pollution Control Board commercial transit advisories.',
-            analysis_origin: 'Transport Exhaust Mitigation Matrix'
+            statutory_memo: 'Refer to Motor Vehicles Act anti-idling regulations and State Pollution Control Board commercial transit advisories.'
           }
         },
         {
@@ -1631,12 +1608,16 @@
           zone: 'Hostel Quadrangle Renovation Site',
           source: 'Silica dust',
           severity: 'Moderate',
+          lifecycle_state: 'Validated',
           notes: 'Dry abrasive cutting of concrete pavers and sandstone without water misting equipment.',
           latitude: 10.9180,
           longitude: 78.7390,
-          _local: true,
           analysis_provider: 'deterministic_fallback',
           analysis_status: 'completed',
+          _local: true,
+          action_log: [
+            { timestamp: nowIso(), note: 'Visual observation logged by student spotter.' }
+          ],
           analysis: {
             particulate_profile: 'Respirable Crystalline Silica (SiO2) particles (<4 µm aerodynamic diameter). Abrasive mechanical cutting generates micro-particles capable of causing acute silicosis and ocular irritation.',
             immediate_protocol: [
@@ -1644,14 +1625,33 @@
               'Cordon off cutting zone and provide certified N95/FFP2 respirators to operators before continuation.'
             ],
             long_term_engineering: 'Procure integrated HEPA dust-extractor shroud cutters. Erect perimeter mesh windbreaks to arrest coarse silica dispersion.',
-            statutory_memo: 'Refer to Building and Other Construction Workers (BOCW) Act environmental dust suppression guidelines and Central Pollution Control Board C&D Waste Rules, 2016.',
-            analysis_origin: 'Construction Dust Guidelines'
+            statutory_memo: 'Refer to Building and Other Construction Workers (BOCW) Act environmental dust suppression guidelines and Central Pollution Control Board C&D Waste Rules, 2016.'
           }
         }
       ];
 
-      // Fallback analysis generator
-      function generateFallbackAnalysis(item) {
+      // Application State
+      const state = {
+        incidents: [],
+        activeId: null,
+        apiUrl: '',
+        isSyncing: false,
+        map: null,
+        markerLayer: null,
+        markers: new Map(),
+        circles: new Map(),
+        pinMode: false,
+        pinMarker: null
+      };
+
+      const severityColors = {
+        Severe: '#ef4444',
+        High: '#f59e0b',
+        Moderate: '#06b6d4'
+      };
+
+      // Rule-based deterministic fallback analysis
+      function buildFallbackDossier(item) {
         const source = item.source || 'Biomass burning';
         const profiles = {
           'Biomass burning': 'Combustion emits fine particles, carbon monoxide, nitrogen oxides, volatile organics, and polycyclic aromatic hydrocarbons. Plume toxicity depends on burn moisture and material; no concentration was measured by this application.',
@@ -1684,8 +1684,7 @@
           particulate_profile: profiles[source] || profiles['Biomass burning'],
           immediate_protocol: protocols,
           long_term_engineering: engineering,
-          statutory_memo: memos[item.jurisdiction] || memos.Global,
-          analysis_origin: 'deterministic_fallback'
+          statutory_memo: memos[item.jurisdiction] || memos.Global
         };
       }
 
@@ -1703,11 +1702,13 @@
           zone,
           source,
           severity,
+          lifecycle_state: raw.lifecycle_state || 'Reported',
           notes: safeText(raw.notes || '').slice(0, 3000),
           latitude: null,
           longitude: null,
           analysis_provider: raw.analysis_provider || 'deterministic_fallback',
           analysis_status: raw.analysis_status || 'completed',
+          action_log: Array.isArray(raw.action_log) ? raw.action_log : [{ timestamp: nowIso(), note: 'Record created' }],
           analysis: raw.analysis && typeof raw.analysis === 'object' ? raw.analysis : null,
           _local: Boolean(raw._local)
         };
@@ -1718,164 +1719,220 @@
           item.longitude = Number(lng);
         }
         if (!item.analysis) {
-          item.analysis = generateFallbackAnalysis(item);
+          item.analysis = buildFallbackDossier(item);
         }
         return item;
       }
 
-      function getStoredIncidents() {
+      function loadStoredIncidents() {
         try {
-          const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.map(normalizeRecord).filter(Boolean);
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              return parsed.map(normalizeRecord).filter(Boolean);
+            }
           }
         } catch (e) { /* ignore */ }
-        return DEFAULT_DEMO_INCIDENTS.map(normalizeRecord);
+        return SEED_INCIDENTS.map(normalizeRecord);
       }
 
-      function saveLocal() {
+      function persistLocal() {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state.incidents));
         } catch (e) {
-          setStatus('Browser storage is full or restricted. Export JSON before continuing.', true);
+          showFeedback('intakeFeedbackBanner', 'Browser localStorage is full. Export registry to JSON.', 'error');
         }
       }
 
-      function setStatus(msg, error = false) {
-        const node = byId('formStatus');
-        node.textContent = msg;
-        node.style.borderColor = error ? 'var(--danger)' : 'var(--border)';
-        node.style.color = error ? '#fca5a5' : 'var(--text-muted)';
+      function showFeedback(elementId, message, type = 'success') {
+        const el = byId(elementId);
+        if (!el) return;
+        el.className = `feedback-banner ${type}`;
+        el.textContent = message;
+        el.style.display = 'flex';
       }
 
-      function setConnection(mode) {
-        const badge = byId('connectionBadge');
-        if (mode === 'api') {
-          badge.className = 'badge live';
-          badge.innerHTML = '<span class="dot"></span>AWS API CONNECTED';
-        } else {
-          badge.className = 'badge demo';
-          badge.innerHTML = '<span class="dot"></span>LOCAL DEMO MODE';
+      // Tab Navigation Switcher
+      function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          const isActive = btn.getAttribute('data-tab') === tabId;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        document.querySelectorAll('.view-content').forEach(view => {
+          view.classList.toggle('active', view.id === tabId);
+        });
+        if (tabId === 'tab-map' && state.map) {
+          setTimeout(() => state.map.invalidateSize(), 150);
         }
       }
 
-      function renderDossier(item) {
-        if (!item) {
-          byId('particulateProfile').innerHTML = '<p>Select or submit an incident to inspect its qualitative risk profile.</p>';
-          byId('immediateProtocol').innerHTML = '<p>Incident-specific safety steps will appear here.</p>';
-          byId('longTermEngineering').innerHTML = '<p>Site assessment recommendations will appear here.</p>';
-          byId('statutoryMemo').innerHTML = '<p>Jurisdiction-aware draft guidance will appear here.</p>';
-          byId('dossierProviderBadge').textContent = 'NO INCIDENT';
-          byId('pm25Val').textContent = '—';
-          byId('pm10Val').textContent = '—';
-          byId('noxVal').textContent = '—';
-          byId('vocVal').textContent = '—';
-          return;
-        }
-
-        const a = item.analysis || generateFallbackAnalysis(item);
-        const providerName = (item.analysis_provider || a.analysis_origin || 'deterministic_fallback').toUpperCase().replace(/_/g, ' ');
-
-        const isGemini = providerName.includes('GEMINI');
-        const isBedrock = providerName.includes('BEDROCK');
-        byId('dossierProviderBadge').className = 'badge ' + (isGemini || isBedrock ? 'live' : 'demo');
-        byId('dossierProviderBadge').textContent = providerName;
-
-        byId('particulateProfile').innerHTML = `<p>${escapeHtml(a.particulate_profile || 'No particulate profile provided.')}</p>`;
-
-        const protocols = Array.isArray(a.immediate_protocol) ? a.immediate_protocol : [a.immediate_protocol || ''];
-        byId('immediateProtocol').innerHTML = protocols.length
-          ? '<ul>' + protocols.map(p => `<li>${escapeHtml(p)}</li>`).join('') + '</ul>'
-          : '<p>Follow standard emergency separation protocols.</p>';
-
-        byId('longTermEngineering').innerHTML = `<p>${escapeHtml(a.long_term_engineering || 'No engineering recommendation provided.')}</p>`;
-        byId('statutoryMemo').innerHTML = `<p>${escapeHtml(a.statutory_memo || 'Consult competent environmental authority.')}</p>`;
-
-        // Explicitly maintain sensor readings as unmeasured null
-        byId('pm25Val').textContent = 'NULL';
-        byId('pm10Val').textContent = 'NULL';
-        byId('noxVal').textContent = 'NULL';
-        byId('vocVal').textContent = 'NULL';
-      }
-
-      function updateCounts() {
+      // Update Statistics & Counters
+      function refreshStats() {
         const total = state.incidents.length;
         const severe = state.incidents.filter(x => x.severity === 'Severe').length;
         const mapped = state.incidents.filter(x => x.latitude !== null && x.longitude !== null).length;
 
-        byId('countAll').textContent = total;
-        byId('countSevere').textContent = severe;
-        byId('mapCount').textContent = `${mapped} MAPPED / ${total} TOTAL`;
+        byId('statTotalIncidents').textContent = total;
+        byId('statSevereIncidents').textContent = severe;
+        byId('statMappedIncidents').textContent = mapped;
+        byId('tabCountBadge').textContent = total;
+        byId('mapPointCounter').textContent = `${mapped} Mapped / ${total} Total`;
       }
 
-      function renderTable() {
-        const body = byId('incidentRows');
-        const query = (byId('registrySearch')?.value || '').trim().toLowerCase();
-        const sevFilter = byId('filterSeverity')?.value || '';
-        const jurFilter = byId('filterJurisdiction')?.value || '';
+      // Render Registry Table
+      function renderRegistryTable() {
+        const tbody = byId('registryTableBody');
+        const q = (byId('regSearchInput')?.value || '').trim().toLowerCase();
+        const sev = byId('regSeverityFilter')?.value || '';
+        const jur = byId('regJurisdictionFilter')?.value || '';
+        const st = byId('regStatusFilter')?.value || '';
 
-        let filtered = state.incidents.slice();
+        let items = state.incidents.slice();
 
-        if (query) {
-          filtered = filtered.filter(item =>
-            (item.zone || '').toLowerCase().includes(query) ||
-            (item.notes || '').toLowerCase().includes(query) ||
-            (item.incident_id || '').toLowerCase().includes(query) ||
-            (item.source || '').toLowerCase().includes(query)
+        if (q) {
+          items = items.filter(x =>
+            (x.zone || '').toLowerCase().includes(q) ||
+            (x.notes || '').toLowerCase().includes(q) ||
+            (x.incident_id || '').toLowerCase().includes(q) ||
+            (x.source || '').toLowerCase().includes(q)
           );
         }
+        if (sev) items = items.filter(x => x.severity === sev);
+        if (jur) items = items.filter(x => x.jurisdiction === jur);
+        if (st) items = items.filter(x => (x.lifecycle_state || 'Reported') === st);
 
-        if (sevFilter) {
-          filtered = filtered.filter(item => item.severity === sevFilter);
-        }
-
-        if (jurFilter) {
-          filtered = filtered.filter(item => item.jurisdiction === jurFilter);
-        }
-
-        updateCounts();
+        refreshStats();
 
         if (!state.incidents.length) {
-          body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Registry is empty. Use the triage form to submit a report.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-dim)">Registry is empty. Submit a report to begin.</td></tr>';
           return;
         }
 
-        if (!filtered.length) {
-          body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">No incidents match the active search filter.</td></tr>';
+        if (!items.length) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-dim)">No incidents match the active search or filter.</td></tr>';
           return;
         }
 
-        filtered.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+        items.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
 
-        body.innerHTML = filtered.map(item => {
+        tbody.innerHTML = items.map(item => {
           const isSelected = item.incident_id === state.activeId;
+          const timeStr = new Date(item.iso_date || (item.timestamp * 1000)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const sevClass = (item.severity || 'Moderate').toLowerCase();
-          const dateStr = new Date(item.iso_date || (item.timestamp * 1000)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
           return `
-            <tr class="${isSelected ? 'selected' : ''}" data-id="${escapeHtml(item.incident_id)}">
-              <td style="font-family:var(--font-mono);font-size:11px">${escapeHtml(dateStr)}</td>
-              <td style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--cyan)">${escapeHtml(item.incident_id)}</td>
+            <tr class="${isSelected ? 'active-row' : ''}" data-id="${escapeHtml(item.incident_id)}">
+              <td style="font-family:var(--font-mono);font-size:11px">${escapeHtml(timeStr)}</td>
+              <td style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--cyan)">${escapeHtml(item.incident_id)}</td>
               <td>${escapeHtml(item.zone)}</td>
               <td>${escapeHtml(item.jurisdiction)}</td>
               <td>${escapeHtml(item.source)}</td>
-              <td><span class="sev-badge ${sevClass}">${escapeHtml(item.severity)}</span></td>
+              <td><span class="badge-sev ${sevClass}">${escapeHtml(item.severity)}</span></td>
+              <td><span class="badge-status">${escapeHtml(item.lifecycle_state || 'Reported')}</span></td>
               <td>
-                <button class="btn small" data-action="view" data-id="${escapeHtml(item.incident_id)}">Inspect</button>
+                <button class="btn small" data-action="inspect" data-id="${escapeHtml(item.incident_id)}">Inspect</button>
               </td>
             </tr>
           `;
         }).join('');
 
-        body.querySelectorAll('tr').forEach(row => {
+        tbody.querySelectorAll('tr').forEach(row => {
           row.addEventListener('click', () => {
-            const id = row.getAttribute('data-id');
-            selectIncident(id, true);
+            selectIncident(row.getAttribute('data-id'), false);
+          });
+        });
+
+        tbody.querySelectorAll('[data-action="inspect"]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectIncident(btn.getAttribute('data-id'), true);
+            switchTab('tab-dossier');
           });
         });
       }
 
-      function renderMarkers() {
+      // Render Research Dossier
+      function renderDossier(item) {
+        if (!item) {
+          byId('dossierActiveIdBadge').textContent = 'NO INCIDENT SELECTED';
+          byId('dosParticulateProfile').innerHTML = '<p>Select an incident in the Registry or Map to view its qualitative chemical profile.</p>';
+          byId('dosImmediateProtocol').innerHTML = '<p>Incident-specific safety steps will appear here.</p>';
+          byId('dosLongTermEngineering').innerHTML = '<p>Site assessment recommendations will appear here.</p>';
+          byId('dosStatutoryMemo').innerHTML = '<p>Jurisdiction-aware legal reference will appear here.</p>';
+          return;
+        }
+
+        const a = item.analysis || buildFallbackDossier(item);
+        byId('dossierActiveIdBadge').textContent = `${item.incident_id} (${item.severity.toUpperCase()})`;
+
+        byId('dosParticulateProfile').innerHTML = `<p>${escapeHtml(a.particulate_profile || 'No particulate profile provided.')}</p>`;
+
+        const protocols = Array.isArray(a.immediate_protocol) ? a.immediate_protocol : [a.immediate_protocol || ''];
+        byId('dosImmediateProtocol').innerHTML = protocols.length
+          ? '<ul>' + protocols.map(p => `<li>${escapeHtml(p)}</li>`).join('') + '</ul>'
+          : '<p>Follow standard emergency separation protocols.</p>';
+
+        byId('dosLongTermEngineering').innerHTML = `<p>${escapeHtml(a.long_term_engineering || 'No engineering recommendation provided.')}</p>`;
+        byId('dosStatutoryMemo').innerHTML = `<p>${escapeHtml(a.statutory_memo || 'Consult competent environmental authority.')}</p>`;
+
+        renderWorkflow(item);
+      }
+
+      // Render Workflow View
+      function renderWorkflow(item) {
+        if (!item) {
+          byId('workflowIncidentBadge').textContent = 'NO SELECTION';
+          byId('actionLogList').innerHTML = '<div class="action-log-item">No incident selected.</div>';
+          return;
+        }
+
+        byId('workflowIncidentBadge').textContent = `${item.incident_id} · ${item.lifecycle_state || 'Reported'}`;
+
+        const statesOrder = ['Reported', 'Validated', 'Assessed', 'ResponseActive', 'Documented', 'Resolved'];
+        const currentIdx = statesOrder.indexOf(item.lifecycle_state || 'Reported');
+
+        statesOrder.forEach((st, idx) => {
+          const stepEl = byId(`step${st}`);
+          if (!stepEl) return;
+          stepEl.className = 'workflow-step';
+          if (idx < currentIdx) stepEl.classList.add('completed');
+          else if (idx === currentIdx) stepEl.classList.add('current');
+        });
+
+        const logs = Array.isArray(item.action_log) ? item.action_log : [];
+        if (logs.length === 0) {
+          byId('actionLogList').innerHTML = '<div class="action-log-item">No history recorded yet.</div>';
+        } else {
+          byId('actionLogList').innerHTML = logs.map(l => `
+            <div class="action-log-item">
+              <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">${escapeHtml(new Date(l.timestamp).toLocaleString())}:</span>
+              <span> ${escapeHtml(l.note)}</span>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Select Active Incident
+      function selectIncident(id, panMap = false) {
+        const item = state.incidents.find(x => x.incident_id === id);
+        if (!item) return;
+        state.activeId = id;
+        renderDossier(item);
+        renderRegistryTable();
+
+        const marker = state.markers.get(id);
+        if (marker && state.map) {
+          if (panMap) {
+            state.map.setView(marker.getLatLng(), Math.max(state.map.getZoom(), 14));
+            marker.openPopup();
+          }
+        }
+      }
+
+      // Map Markers & Plume Circles
+      function renderMapLayers() {
         if (!state.map || !state.markerLayer) return;
         state.markerLayer.clearLayers();
         state.markers.clear();
@@ -1886,81 +1943,55 @@
           const lat = Number(item.latitude), lng = Number(item.longitude);
           const col = severityColors[item.severity] || severityColors.Moderate;
 
-          // Plume dispersion simulated radius: 250m for Severe, 120m for High, 60m for Moderate
-          const plumeRadius = item.severity === 'Severe' ? 250 : (item.severity === 'High' ? 120 : 60);
+          const cordonMeters = item.severity === 'Severe' ? 250 : (item.severity === 'High' ? 120 : 60);
 
-          const plumeCircle = L.circle([lat, lng], {
-            radius: plumeRadius,
+          const circle = L.circle([lat, lng], {
+            radius: cordonMeters,
             color: col,
             weight: 1,
-            dashArray: '4, 6',
+            dashArray: '3, 6',
             fillColor: col,
             fillOpacity: 0.12
           }).addTo(state.markerLayer);
-          state.circles.set(item.incident_id, plumeCircle);
+          state.circles.set(item.incident_id, circle);
 
-          const centerMarker = L.circleMarker([lat, lng], {
-            radius: item.severity === 'Severe' ? 9 : (item.severity === 'High' ? 7 : 6),
+          const marker = L.circleMarker([lat, lng], {
+            radius: item.severity === 'Severe' ? 9 : 7,
             color: '#ffffff',
             weight: 1.5,
             fillColor: col,
-            fillOpacity: 0.9
+            fillOpacity: 0.95
           }).addTo(state.markerLayer);
 
-          centerMarker.bindPopup(`
+          marker.bindPopup(`
             <div style="font-size:12px;line-height:1.4">
               <strong style="color:#38bdf8">${escapeHtml(item.zone)}</strong><br>
               <span>Source: ${escapeHtml(item.source)}</span><br>
               <span>Severity: <strong style="color:${col}">${escapeHtml(item.severity)}</strong></span><br>
-              <span style="font-size:10px;color:#94a3b8">Plume Cordon: ${plumeRadius}m</span><br>
-              <button class="btn small primary" style="margin-top:6px;width:100%" onclick="window.pranaSelectIncident('${escapeHtml(item.incident_id)}')">Open Dossier</button>
+              <span style="font-size:10px;color:#94a3b8">Plume Cordon: ${cordonMeters}m</span><br>
+              <button class="btn small primary" style="margin-top:6px;width:100%" onclick="window.pranaInspectFromMap('${escapeHtml(item.incident_id)}')">Inspect Dossier</button>
             </div>
           `);
 
-          centerMarker.on('click', () => selectIncident(item.incident_id, false));
-          state.markers.set(item.incident_id, centerMarker);
+          marker.on('click', () => selectIncident(item.incident_id, false));
+          state.markers.set(item.incident_id, marker);
         });
       }
+      window.pranaInspectFromMap = id => {
+        selectIncident(id, false);
+        switchTab('tab-dossier');
+      };
 
-      function selectIncident(id, pan = false) {
-        sound.click();
-        const item = state.incidents.find(x => x.incident_id === id);
-        if (!item) return;
-        state.activeId = id;
-        renderDossier(item);
-        renderTable();
-
-        const marker = state.markers.get(id);
-        if (marker && pan && state.map) {
-          state.map.setView(marker.getLatLng(), Math.max(state.map.getZoom(), 14));
-          marker.openPopup();
-        }
-      }
-      window.pranaSelectIncident = id => selectIncident(id, true);
-
-      function renderAll() {
-        renderTable();
-        renderMarkers();
-        const active = state.incidents.find(x => x.incident_id === state.activeId) || state.incidents[0];
-        if (active) {
-          state.activeId = active.incident_id;
-          renderDossier(active);
-        } else {
-          renderDossier(null);
-        }
-      }
-
-      // Initialize Leaflet Map
-      function initializeMap() {
+      // Leaflet Initialization
+      function initLeafletMap() {
         if (!window.L) {
-          byId('map').innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-dim)">Leaflet GIS library unavailable. Check internet connectivity.</div>';
+          byId('map').innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-dim)">Leaflet map library could not load.</div>';
           return;
         }
 
-        // Default centered on South India / Samayapuram
         state.map = L.map('map', { attributionControl: false }).setView([10.9205, 78.7410], 12);
 
-        // CartoDB Dark Matter tiles (dark operations theme)
+        // Dark Matter map tiles with OpenStreetMap fallback
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
           maxZoom: 19,
           subdomains: 'abcd',
@@ -1969,15 +2000,15 @@
 
         state.markerLayer = L.layerGroup().addTo(state.map);
 
-        // Map Legend
+        // Legend control
         const legend = L.control({ position: 'bottomright' });
         legend.onAdd = () => {
           const div = L.DomUtil.create('div', 'map-legend');
           div.innerHTML = `
             <div style="font-weight:700;margin-bottom:4px;color:var(--cyan)">MICRO-PLUME SEVERITY</div>
-            <div class="legend-item"><span class="legend-dot" style="background:${severityColors.Severe}"></span>Severe (250m Cordon)</div>
-            <div class="legend-item"><span class="legend-dot" style="background:${severityColors.High}"></span>High (120m Cordon)</div>
-            <div class="legend-item"><span class="legend-dot" style="background:${severityColors.Moderate}"></span>Moderate (60m Cordon)</div>
+            <div class="legend-row"><span class="legend-dot" style="background:${severityColors.Severe}"></span>Severe (250m Cordon)</div>
+            <div class="legend-row"><span class="legend-dot" style="background:${severityColors.High}"></span>High (120m Cordon)</div>
+            <div class="legend-row"><span class="legend-dot" style="background:${severityColors.Moderate}"></span>Moderate (60m Cordon)</div>
           `;
           return div;
         };
@@ -1986,18 +2017,16 @@
         // Click on map to set coordinates
         state.map.on('click', (e) => {
           if (state.pinMode) {
-            sound.click();
             const lat = Number(e.latlng.lat.toFixed(5));
             const lng = Number(e.latlng.lng.toFixed(5));
-            byId('lat').value = lat;
-            byId('lng').value = lng;
+            byId('formLat').value = lat;
+            byId('formLng').value = lng;
             state.pinMode = false;
-            byId('pinMapBtn').classList.remove('primary');
-            byId('pinMapBtn').textContent = 'Click Map to Pin';
-
+            byId('btnPinFromMap').textContent = 'Pick Location on Map';
             if (state.pinMarker) state.map.removeLayer(state.pinMarker);
-            state.pinMarker = L.marker([lat, lng], { title: 'Selected Point' }).addTo(state.map);
-            setStatus(`Pinned coordinates: ${lat}, ${lng}`);
+            state.pinMarker = L.marker([lat, lng]).addTo(state.map);
+            switchTab('tab-intake');
+            showFeedback('intakeFeedbackBanner', `Pinned coordinates: ${lat}, ${lng}`, 'success');
           }
         });
 
@@ -2005,19 +2034,15 @@
       }
 
       // API Synchronization
-      async function syncFromApi() {
+      async function triggerApiSync(silent = false) {
         if (!state.apiUrl) {
-          setConnection('demo');
-          byId('lastSyncStatus').textContent = 'Last sync: Local demo mode active';
-          setStatus('No API endpoint configured. Running in autonomous local mode.');
+          updateConnectionStatus('demo', 'LOCAL DEMO MODE');
           return;
         }
 
-        if (state.busy) return;
-        state.busy = true;
-        const btn = byId('syncBtn');
-        btn.disabled = true;
-        btn.textContent = 'Syncing…';
+        if (state.isSyncing) return;
+        state.isSyncing = true;
+        updateConnectionStatus('demo', 'SYNCING...');
 
         try {
           const resp = await fetch(state.apiUrl.replace(/\/+$/, '') + '/incidents', {
@@ -2028,125 +2053,55 @@
           const data = await resp.json();
           const items = Array.isArray(data) ? data : (Array.isArray(data.incidents) ? data.incidents : []);
           state.incidents = items.map(normalizeRecord).filter(Boolean);
-          setConnection('api');
-          sound.success();
-          byId('lastSyncStatus').textContent = `Last sync: ${new Date().toLocaleTimeString()} (${items.length} records)`;
-          setStatus(`Successfully synchronized ${items.length} records from AWS DynamoDB.`);
-          renderAll();
+          persistLocal();
+          updateConnectionStatus('live', 'AWS API CONNECTED');
+          byId('statSyncTime').textContent = `Last sync: ${new Date().toLocaleTimeString()} (${items.length} records)`;
+          byId('footerSyncStatusText').textContent = `AWS connected (${items.length} records)`;
+          renderRegistryTable();
+          renderMapLayers();
+          if (!silent) showFeedback('settingsFeedback', `Successfully synchronized ${items.length} incidents from AWS API Gateway.`, 'success');
         } catch (err) {
-          setConnection('demo');
-          sound.alert();
-          byId('lastSyncStatus').textContent = `Sync failed at ${new Date().toLocaleTimeString()}`;
-          setStatus(`AWS API sync failed (${err.message}). Local records retained.`, true);
+          updateConnectionStatus('error', 'BACKEND UNREACHABLE');
+          byId('statSyncTime').textContent = `Sync failed at ${new Date().toLocaleTimeString()}`;
+          byId('footerSyncStatusText').textContent = 'Backend unreachable (using local storage)';
+          if (!silent) showFeedback('settingsFeedback', `AWS API connection failed: ${err.message}. Retaining local records.`, 'error');
         } finally {
-          state.busy = false;
-          btn.disabled = false;
-          btn.textContent = 'Manual Sync';
+          state.isSyncing = false;
         }
       }
 
-      // Submit new incident
-      async function submitIncident(e) {
-        e.preventDefault();
-        const form = e.currentTarget;
-        if (!form.reportValidity()) return;
+      function updateConnectionStatus(mode, label) {
+        const badge = byId('connectionBadge');
+        const text = byId('connectionText');
+        const statState = byId('statOperationalState');
 
-        const latRaw = byId('lat').value.trim();
-        const lngRaw = byId('lng').value.trim();
+        badge.className = `status-pill ${mode}`;
+        text.textContent = label;
+        statState.textContent = label;
 
-        if (Boolean(latRaw) !== Boolean(lngRaw)) {
-          sound.alert();
-          setStatus('Provide both Latitude and Longitude, or leave both blank.', true);
-          return;
-        }
-
-        if (latRaw && !validLatLng(latRaw, lngRaw)) {
-          sound.alert();
-          setStatus('Coordinates outside valid latitude [-90,90] or longitude [-180,180] range.', true);
-          return;
-        }
-
-        const input = {
-          jurisdiction: byId('jurisdiction').value,
-          zone: byId('zone').value.trim(),
-          source: byId('source').value,
-          severity: byId('severity').value,
-          notes: byId('notes').value.trim(),
-          latitude: latRaw ? Number(latRaw) : null,
-          longitude: lngRaw ? Number(lngRaw) : null
-        };
-
-        const newItem = normalizeRecord({
-          incident_id: 'PV-' + Date.now().toString(36).toUpperCase(),
-          timestamp: Math.floor(Date.now() / 1000),
-          iso_date: nowIso(),
-          ...input
-        });
-
-        // Try API submission if endpoint exists
-        if (state.apiUrl) {
-          setStatus('Submitting to AWS API Gateway & Lambda AI Engine…');
-          try {
-            const resp = await fetch(state.apiUrl.replace(/\/+$/, '') + '/incidents', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              body: JSON.stringify(input)
-            });
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            const data = await resp.json();
-            const saved = normalizeRecord(data.record || data);
-            if (saved) {
-              newItem.incident_id = saved.incident_id;
-              newItem.analysis = saved.analysis;
-              newItem.analysis_provider = saved.analysis_provider;
-              newItem.analysis_status = saved.analysis_status;
-              newItem._local = false;
-            }
-            setConnection('api');
-            setStatus(`Incident logged and stored in DynamoDB (${newItem.incident_id}).`);
-          } catch (err) {
-            newItem._local = true;
-            setStatus(`API submission failed (${err.message}); saved to browser local registry.`, true);
-          }
+        if (mode === 'live') {
+          statState.style.color = 'var(--accent)';
+        } else if (mode === 'error') {
+          statState.style.color = 'var(--danger)';
         } else {
-          newItem._local = true;
-          setStatus(`Incident created in local demo registry (${newItem.incident_id}).`);
-        }
-
-        if (newItem.severity === 'Severe') sound.alert(); else sound.success();
-
-        state.incidents.unshift(newItem);
-        state.activeId = newItem.incident_id;
-        saveLocal();
-        renderAll();
-
-        form.reset();
-        byId('zoneCount').textContent = '0/180';
-        byId('notesCount').textContent = '0/3000';
-        if (state.pinMarker) {
-          state.map.removeLayer(state.pinMarker);
-          state.pinMarker = null;
+          statState.style.color = 'var(--warning)';
         }
       }
 
-      // Build Official Formal Letterhead representation
-      function buildPrintContent() {
-        const item = state.incidents.find(x => x.incident_id === state.activeId);
-        if (!item) {
-          setStatus('Please select or create an incident record first.', true);
-          return null;
-        }
+      // Build Official Regulatory Notice Sheet
+      function generateNoticeMarkup() {
+        const item = state.incidents.find(x => x.incident_id === state.activeId) || state.incidents[0];
+        if (!item) return null;
 
-        const a = item.analysis || generateFallbackAnalysis(item);
-        const authority = byId('authority').value.trim() || 'Competent State Pollution Control Board / Ward Municipal Office';
-        const lead = byId('leadName').value.trim() || 'SARVEPALLI AUDI SIVA BHANUVARDHAN (Lead Observer)';
+        const a = item.analysis || buildFallbackDossier(item);
+        const authority = byId('inputTargetAuthority')?.value.trim() || 'Competent State Pollution Control Board / Ward Municipal Office';
+        const lead = byId('inputFieldLeadName')?.value.trim() || 'SARVEPALLI AUDI SIVA BHANUVARDHAN (Lead Observer)';
         const dateStr = new Date(item.iso_date || (item.timestamp * 1000)).toLocaleString();
-
         const protocols = Array.isArray(a.immediate_protocol) ? a.immediate_protocol : [a.immediate_protocol];
 
         return `
           <div style="border: 3px double #111827; padding: 24px; position: relative;">
-            <div style="text-align:center; border-bottom: 2px solid #111827; padding-bottom: 12px; margin-bottom: 18px;">
+            <div style="text-align:center; border-bottom: 2px solid #111827; padding-bottom: 12px; margin-bottom: 16px;">
               <div style="border: 2px solid #b91c1c; color: #b91c1c; display:inline-block; padding: 3px 12px; font-weight: bold; letter-spacing: 2px; font-size: 10pt; margin-bottom: 8px;">
                 DRAFT FOR ADMINISTRATIVE REVIEW — NOT AN ENFORCEMENT ORDER
               </div>
@@ -2156,16 +2111,16 @@
               </p>
             </div>
 
-            <div style="display: flex; justify-content: space-between; font-size: 10pt; margin-bottom: 16px; border-bottom: 1px solid #d1d5db; padding-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 10pt; margin-bottom: 14px; border-bottom: 1px solid #d1d5db; padding-bottom: 8px;">
               <div>
                 <strong>Incident Reference:</strong> ${escapeHtml(item.incident_id)}<br>
-                <strong>Timestamp of Observation:</strong> ${escapeHtml(dateStr)}<br>
+                <strong>Timestamp:</strong> ${escapeHtml(dateStr)}<br>
                 <strong>Jurisdiction:</strong> ${escapeHtml(item.jurisdiction)}
               </div>
               <div style="text-align: right;">
                 <strong>Assessed Severity:</strong> ${escapeHtml(item.severity)}<br>
-                <strong>Plume Source Category:</strong> ${escapeHtml(item.source)}<br>
-                <strong>Analysis Engine:</strong> ${escapeHtml(item.analysis_provider || 'Deterministic Model')}
+                <strong>Plume Source:</strong> ${escapeHtml(item.source)}<br>
+                <strong>Lifecycle Status:</strong> ${escapeHtml(item.lifecycle_state || 'Reported')}
               </div>
             </div>
 
@@ -2178,14 +2133,14 @@
               <h4 style="font-size: 11pt; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 6px;">1. Locality &amp; Observation Facts</h4>
               <p><strong>Specific Zone:</strong> ${escapeHtml(item.zone)}</p>
               ${item.latitude ? `<p><strong>Verified Coordinates:</strong> ${escapeHtml(item.latitude)}° N, ${escapeHtml(item.longitude)}° E</p>` : '<p><em>Coordinates: Not recorded by observer.</em></p>'}
-              <p><strong>Field Observer Notes:</strong> ${escapeHtml(item.notes || 'No supplementary context recorded.')}</p>
+              <p><strong>Field Notes:</strong> ${escapeHtml(item.notes || 'No supplementary context recorded.')}</p>
             </div>
 
             <div style="margin-bottom: 14px;">
               <h4 style="font-size: 11pt; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 6px;">2. Qualitative Chemical Profile &amp; Exposure Risk</h4>
               <p>${escapeHtml(a.particulate_profile)}</p>
               <p style="font-size: 9pt; font-style: italic; color: #4b5563; margin-top: 4px;">
-                Note: No sensor concentration was measured by this application. Numerical PM2.5/PM10 readings remain null in accordance with data integrity guidelines.
+                Compliance Note: No sensor concentration was measured by this application. Numerical PM2.5/PM10 readings remain explicitly null.
               </p>
             </div>
 
@@ -2201,7 +2156,7 @@
               <p>${escapeHtml(a.statutory_memo)}</p>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 45px; padding-top: 10px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; padding-top: 10px;">
               <div style="border-top: 1px solid #111827; padding-top: 6px; font-size: 10pt;">
                 <strong>Field Observer Lead:</strong><br>
                 ${escapeHtml(lead)}<br>
@@ -2214,250 +2169,347 @@
               </div>
             </div>
 
-            <div style="margin-top: 24px; text-align: center; font-size: 8pt; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px;">
+            <div style="margin-top: 20px; text-align: center; font-size: 8pt; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px;">
               PRANA-VAYU Platform · Developed by Sarvepalli Audi Siva Bhanuvardhan (AS PHENIX) · Verify all facts before statutory transmission.
             </div>
           </div>
         `;
       }
 
-      // Event Listeners setup
-      byId('incidentForm').addEventListener('submit', submitIncident);
+      // Event Binding & Initial Setup
+      function bindEvents() {
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            switchTab(btn.getAttribute('data-tab'));
+          });
+        });
 
-      byId('resetForm').addEventListener('click', () => {
-        byId('incidentForm').reset();
-        byId('zoneCount').textContent = '0/180';
-        byId('notesCount').textContent = '0/3000';
-        setStatus('Form cleared.');
-      });
+        byId('quickReportNavBtn')?.addEventListener('click', () => switchTab('tab-intake'));
+        byId('overviewGoIntakeBtn')?.addEventListener('click', () => switchTab('tab-intake'));
+        byId('overviewLoadSampleBtn')?.addEventListener('click', fillSampleScenario);
+        byId('btnFillSample')?.addEventListener('click', fillSampleScenario);
 
-      byId('zone').addEventListener('input', (e) => {
-        byId('zoneCount').textContent = `${e.target.value.length}/180`;
-      });
+        // Character counts
+        byId('formZone')?.addEventListener('input', e => {
+          byId('zoneCharCount').textContent = `${e.target.value.length}/180`;
+        });
+        byId('formNotes')?.addEventListener('input', e => {
+          byId('notesCharCount').textContent = `${e.target.value.length}/3000`;
+        });
 
-      byId('notes').addEventListener('input', (e) => {
-        byId('notesCount').textContent = `${e.target.value.length}/3000`;
-      });
+        // Form Submit
+        byId('intakeForm')?.addEventListener('submit', async e => {
+          e.preventDefault();
+          const form = e.currentTarget;
+          if (!form.reportValidity()) return;
 
-      // Quick sample scenario filler
-      byId('quickSampleBtn').addEventListener('click', () => {
-        sound.click();
-        byId('jurisdiction').value = 'India';
-        byId('zone').value = 'Samayapuram University Perimeter, North Gate Ditch';
-        byId('source').value = 'Biomass burning';
-        byId('severity').value = 'Severe';
-        byId('notes').value = 'Smoldering dry foliage and perimeter leaf litter emitting dense gray plume drifting across student hostel entrance corridor.';
-        byId('lat').value = '10.9205';
-        byId('lng').value = '78.7410';
-        byId('zoneCount').textContent = `${byId('zone').value.length}/180`;
-        byId('notesCount').textContent = `${byId('notes').value.length}/3000`;
-        setStatus('Loaded verified sample scenario into intake form.');
-      });
+          const latVal = byId('formLat').value.trim();
+          const lngVal = byId('formLng').value.trim();
 
-      // Geolocation API button
-      byId('useGpsBtn').addEventListener('click', () => {
-        sound.click();
-        if (!navigator.geolocation) {
-          setStatus('Geolocation is not supported by your browser.', true);
-          return;
-        }
-        setStatus('Acquiring device GPS coordinates…');
-        navigator.geolocation.getCurrentPosition(
-          pos => {
-            const lat = Number(pos.coords.latitude.toFixed(5));
-            const lng = Number(pos.coords.longitude.toFixed(5));
-            byId('lat').value = lat;
-            byId('lng').value = lng;
-            sound.success();
-            setStatus(`Acquired GPS: ${lat}, ${lng} (±${Math.round(pos.coords.accuracy)}m)`);
-            if (state.map) {
-              state.map.setView([lat, lng], 15);
-              if (state.pinMarker) state.map.removeLayer(state.pinMarker);
-              state.pinMarker = L.marker([lat, lng]).addTo(state.map);
+          if (Boolean(latVal) !== Boolean(lngVal)) {
+            showFeedback('intakeFeedbackBanner', 'Provide both Latitude and Longitude, or leave both blank.', 'error');
+            return;
+          }
+          if (latVal && !validLatLng(latVal, lngVal)) {
+            showFeedback('intakeFeedbackBanner', 'Coordinates are outside valid latitude [-90,90] or longitude [-180,180] range.', 'error');
+            return;
+          }
+
+          const submitBtn = byId('btnSubmitIntake');
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Submitting...';
+
+          const inputPayload = {
+            jurisdiction: byId('formJurisdiction').value,
+            zone: byId('formZone').value.trim(),
+            source: byId('formSource').value,
+            severity: byId('formSeverity').value,
+            notes: byId('formNotes').value.trim(),
+            latitude: latVal ? Number(latVal) : null,
+            longitude: lngVal ? Number(lngVal) : null
+          };
+
+          const newRecord = normalizeRecord({
+            incident_id: 'PV-' + Date.now().toString(36).toUpperCase(),
+            timestamp: Math.floor(Date.now() / 1000),
+            iso_date: nowIso(),
+            ...inputPayload
+          });
+
+          if (state.apiUrl) {
+            try {
+              const resp = await fetch(state.apiUrl.replace(/\/+$/, '') + '/incidents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(inputPayload)
+              });
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+              const data = await resp.json();
+              const saved = normalizeRecord(data.record || data);
+              if (saved) {
+                newRecord.incident_id = saved.incident_id;
+                newRecord.analysis = saved.analysis;
+                newRecord.analysis_provider = saved.analysis_provider;
+                newRecord._local = false;
+              }
+              showFeedback('intakeFeedbackBanner', `Report logged to AWS DynamoDB with ID ${newRecord.incident_id}.`, 'success');
+            } catch (err) {
+              newRecord._local = true;
+              showFeedback('intakeFeedbackBanner', `AWS submission failed (${err.message}). Stored in local browser registry.`, 'error');
             }
-          },
-          err => {
-            sound.alert();
-            setStatus(`GPS acquisition failed (${err.message}). Enter coordinates manually.`, true);
-          },
-          { enableHighAccuracy: true, timeout: 8000 }
-        );
-      });
+          } else {
+            newRecord._local = true;
+            showFeedback('intakeFeedbackBanner', `Incident recorded in local registry (${newRecord.incident_id}). Ready for gatekeeper review.`, 'success');
+          }
 
-      // Click map to pin toggle
-      byId('pinMapBtn').addEventListener('click', () => {
-        sound.click();
-        state.pinMode = !state.pinMode;
-        const btn = byId('pinMapBtn');
-        if (state.pinMode) {
-          btn.classList.add('primary');
-          btn.textContent = 'Click on Map Now!';
-          setStatus('Map Pin Mode Active: Click any point on the map to set coordinates.');
-        } else {
-          btn.classList.remove('primary');
-          btn.textContent = 'Click Map to Pin';
-          setStatus('Map pin mode cancelled.');
-        }
-      });
+          state.incidents.unshift(newRecord);
+          state.activeId = newRecord.incident_id;
+          persistLocal();
+          renderRegistryTable();
+          renderMapLayers();
+          renderDossier(newRecord);
 
-      byId('clearCoordsBtn').addEventListener('click', () => {
-        byId('lat').value = '';
-        byId('lng').value = '';
-        if (state.pinMarker && state.map) {
-          state.map.removeLayer(state.pinMarker);
-          state.pinMarker = null;
-        }
-        setStatus('Cleared coordinates.');
-      });
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Observation Report';
 
-      // Center / Fit map view
-      byId('fitMapBtn').addEventListener('click', () => {
-        sound.click();
-        if (!state.map) return;
-        const latLngs = state.incidents
-          .filter(x => x.latitude !== null && x.longitude !== null)
-          .map(x => [Number(x.latitude), Number(x.longitude)]);
-        if (latLngs.length > 0) {
-          state.map.fitBounds(latLngs, { padding: [40, 40], maxZoom: 15 });
-        } else {
-          state.map.setView([10.9205, 78.7410], 12);
-        }
-      });
+          form.reset();
+          byId('zoneCharCount').textContent = '0/180';
+          byId('notesCharCount').textContent = '0/3000';
+          if (state.pinMarker && state.map) {
+            state.map.removeLayer(state.pinMarker);
+            state.pinMarker = null;
+          }
+        });
 
-      // Audio Toggle Button
-      byId('soundToggleBtn').addEventListener('click', () => {
-        const enabled = sound.toggle();
-        const btn = byId('soundToggleBtn');
-        const lbl = byId('soundLabel');
-        if (enabled) {
-          btn.classList.add('active');
-          lbl.textContent = 'AUDIO ON';
-          sound.click();
-        } else {
-          btn.classList.remove('active');
-          lbl.textContent = 'MUTED';
-        }
-      });
+        // Clear Form
+        byId('btnClearForm')?.addEventListener('click', () => {
+          byId('intakeForm').reset();
+          byId('zoneCharCount').textContent = '0/180';
+          byId('notesCharCount').textContent = '0/3000';
+          byId('intakeFeedbackBanner').style.display = 'none';
+        });
 
-      // Save API endpoint
-      byId('saveApi').addEventListener('click', () => {
-        sound.click();
-        const raw = byId('apiUrl').value.trim();
-        if (!raw) {
-          state.apiUrl = '';
-          localStorage.removeItem(API_KEY);
-          setConnection('demo');
-          setStatus('API endpoint cleared. Running in local demo mode.');
-          return;
-        }
-        try {
-          const u = new URL(raw);
-          state.apiUrl = u.origin + u.pathname.replace(/\/+$/, '');
-          localStorage.setItem(API_KEY, state.apiUrl);
-          setStatus('API endpoint saved. Use Manual Sync to verify connection.');
-          syncFromApi();
-        } catch (e) {
-          sound.alert();
-          setStatus('Invalid endpoint URL. Enter a valid HTTPS URL.', true);
-        }
-      });
+        // Geolocation
+        byId('btnAcquireGps')?.addEventListener('click', () => {
+          if (!navigator.geolocation) {
+            showFeedback('intakeFeedbackBanner', 'Geolocation not supported by your browser.', 'error');
+            return;
+          }
+          showFeedback('intakeFeedbackBanner', 'Acquiring GPS fix...', 'success');
+          navigator.geolocation.getCurrentPosition(
+            pos => {
+              const lat = Number(pos.coords.latitude.toFixed(5));
+              const lng = Number(pos.coords.longitude.toFixed(5));
+              byId('formLat').value = lat;
+              byId('formLng').value = lng;
+              showFeedback('intakeFeedbackBanner', `Acquired coordinates: ${lat}, ${lng} (±${Math.round(pos.coords.accuracy)}m)`, 'success');
+            },
+            err => {
+              showFeedback('intakeFeedbackBanner', `GPS acquisition failed (${err.message}).`, 'error');
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+          );
+        });
 
-      byId('syncBtn').addEventListener('click', syncFromApi);
+        // Map Pinning
+        byId('btnPinFromMap')?.addEventListener('click', () => {
+          state.pinMode = true;
+          switchTab('tab-map');
+          byId('btnPinFromMap').textContent = 'Click on Map Now!';
+        });
 
-      // Export JSON
-      byId('exportBtn').addEventListener('click', () => {
-        sound.click();
-        const data = {
-          export_timestamp: nowIso(),
-          total_records: state.incidents.length,
+        byId('btnClearCoords')?.addEventListener('click', () => {
+          byId('formLat').value = '';
+          byId('formLng').value = '';
+          if (state.pinMarker && state.map) {
+            state.map.removeLayer(state.pinMarker);
+            state.pinMarker = null;
+          }
+        });
+
+        // Map Fit Extent
+        byId('btnFitMapExtent')?.addEventListener('click', () => {
+          if (!state.map) return;
+          const coords = state.incidents
+            .filter(x => x.latitude !== null && x.longitude !== null)
+            .map(x => [Number(x.latitude), Number(x.longitude)]);
+          if (coords.length > 0) {
+            state.map.fitBounds(coords, { padding: [40, 40], maxZoom: 15 });
+          } else {
+            state.map.setView([10.9205, 78.7410], 12);
+          }
+        });
+
+        // Registry Filters
+        byId('regSearchInput')?.addEventListener('input', renderRegistryTable);
+        byId('regSeverityFilter')?.addEventListener('change', renderRegistryTable);
+        byId('regJurisdictionFilter')?.addEventListener('change', renderRegistryTable);
+        byId('regStatusFilter')?.addEventListener('change', renderRegistryTable);
+        byId('btnResetFilters')?.addEventListener('click', () => {
+          byId('regSearchInput').value = '';
+          byId('regSeverityFilter').value = '';
+          byId('regJurisdictionFilter').value = '';
+          byId('regStatusFilter').value = '';
+          renderRegistryTable();
+        });
+
+        byId('btnSyncRegistry')?.addEventListener('click', () => triggerApiSync(false));
+        byId('btnExportRegistryJson')?.addEventListener('click', exportRegistryJson);
+        byId('btnExportJsonDirect')?.addEventListener('click', exportRegistryJson);
+
+        // Lifecycle Advance
+        byId('btnAdvanceLifecycle')?.addEventListener('click', () => {
+          const item = state.incidents.find(x => x.incident_id === state.activeId);
+          if (!item) {
+            alert('Select an incident first.');
+            return;
+          }
+          const nextState = byId('selectNextState').value;
+          const noteText = byId('inputActionLogNote').value.trim() || `Advanced lifecycle to ${nextState}`;
+
+          item.lifecycle_state = nextState;
+          if (!Array.isArray(item.action_log)) item.action_log = [];
+          item.action_log.push({ timestamp: nowIso(), note: noteText });
+
+          persistLocal();
+          renderWorkflow(item);
+          renderRegistryTable();
+          byId('inputActionLogNote').value = '';
+        });
+
+        // Printable Modal Handlers
+        const openPrintModal = () => {
+          const html = generateNoticeMarkup();
+          if (!html) {
+            alert('No incident available to generate notice.');
+            return;
+          }
+          byId('modalPrintSheetContent').innerHTML = html;
+          byId('printPaperContainer').innerHTML = html;
+          byId('printModal').classList.add('open');
+        };
+
+        byId('btnDossierPrintDraft')?.addEventListener('click', openPrintModal);
+        byId('btnTriggerPrintSheet')?.addEventListener('click', openPrintModal);
+        byId('modalBtnClose')?.addEventListener('click', () => byId('printModal').classList.remove('open'));
+        byId('modalBtnPrintExec')?.addEventListener('click', () => window.print());
+
+        // Settings Handlers
+        byId('btnSaveApiEndpoint')?.addEventListener('click', () => {
+          const raw = byId('inputApiEndpoint').value.trim();
+          if (!raw) {
+            state.apiUrl = '';
+            localStorage.removeItem(API_ENDPOINT_KEY);
+            updateConnectionStatus('demo', 'LOCAL DEMO MODE');
+            showFeedback('settingsFeedback', 'API endpoint cleared. Running in local demo mode.', 'success');
+            return;
+          }
+          try {
+            const u = new URL(raw);
+            if (u.protocol !== 'https:' && u.hostname !== 'localhost' && u.hostname !== '127.0.0.1') {
+              throw new Error('Endpoint must use HTTPS.');
+            }
+            state.apiUrl = u.origin + u.pathname.replace(/\/+$/, '');
+            localStorage.setItem(API_ENDPOINT_KEY, state.apiUrl);
+            showFeedback('settingsFeedback', 'Endpoint saved to browser storage.', 'success');
+          } catch (e) {
+            showFeedback('settingsFeedback', `Invalid URL: ${e.message}`, 'error');
+          }
+        });
+
+        byId('btnTestApiConnection')?.addEventListener('click', () => {
+          byId('btnSaveApiEndpoint').click();
+          triggerApiSync(false);
+        });
+
+        byId('btnClearApiEndpoint')?.addEventListener('click', () => {
+          byId('inputApiEndpoint').value = '';
+          byId('btnSaveApiEndpoint').click();
+        });
+
+        byId('btnResetToDefaultDemo')?.addEventListener('click', () => {
+          if (!confirm('Reset incident registry to default seed scenarios?')) return;
+          state.incidents = SEED_INCIDENTS.map(normalizeRecord);
+          persistLocal();
+          renderRegistryTable();
+          renderMapLayers();
+          selectIncident(state.incidents[0].incident_id);
+          showFeedback('settingsFeedback', 'Registry reset to seed scenarios.', 'success');
+        });
+
+        byId('btnClearAllLocal')?.addEventListener('click', () => {
+          if (!confirm('Remove all locally stored records?')) return;
+          state.incidents = [];
+          persistLocal();
+          renderRegistryTable();
+          renderMapLayers();
+          renderDossier(null);
+          showFeedback('settingsFeedback', 'Local storage cleared.', 'success');
+        });
+      }
+
+      function fillSampleScenario() {
+        byId('formJurisdiction').value = 'India';
+        byId('formZone').value = 'Samayapuram University Perimeter, North Gate Ditch';
+        byId('formSource').value = 'Biomass burning';
+        byId('formSeverity').value = 'Severe';
+        byId('formNotes').value = 'Smoldering dry foliage and perimeter leaf litter emitting dense gray plume drifting across student hostel entrance corridor.';
+        byId('formLat').value = '10.9205';
+        byId('formLng').value = '78.7410';
+        byId('zoneCharCount').textContent = `${byId('formZone').value.length}/180`;
+        byId('notesCharCount').textContent = `${byId('formNotes').value.length}/3000`;
+        switchTab('tab-intake');
+        showFeedback('intakeFeedbackBanner', 'Loaded verified sample scenario into intake form.', 'success');
+      }
+
+      function exportRegistryJson() {
+        const payload = {
+          exported_at: nowIso(),
+          mode: state.apiUrl ? 'AWS API' : 'Local Demo',
+          count: state.incidents.length,
           incidents: state.incidents
         };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
-        a.href = url;
-        a.download = `prana-vayu-export-${Date.now()}.json`;
+        a.href = URL.createObjectURL(blob);
+        a.download = `prana-vayu-incidents-${Date.now()}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        setStatus('Exported incident registry to JSON.');
-      });
-
-      // Clear demo
-      byId('clearDemoBtn').addEventListener('click', () => {
-        sound.click();
-        if (!confirm('Reset incident registry to default seed scenarios?')) return;
-        state.incidents = DEFAULT_DEMO_INCIDENTS.map(normalizeRecord);
-        saveLocal();
-        renderAll();
-        setStatus('Incident registry reset to seed scenarios.');
-      });
-
-      // Print Preview Modal Handlers
-      byId('previewPrintBtn').addEventListener('click', () => {
-        sound.click();
-        const html = buildPrintContent();
-        if (!html) return;
-        byId('printModalContent').innerHTML = html;
-        byId('printNotice').innerHTML = html;
-        byId('printModal').classList.add('open');
-      });
-
-      byId('modalCloseBtn').addEventListener('click', () => {
-        sound.click();
-        byId('printModal').classList.remove('open');
-      });
-
-      byId('modalPrintExecBtn').addEventListener('click', () => {
-        sound.click();
-        window.print();
-      });
-
-      // Search & Filters
-      byId('registrySearch').addEventListener('input', renderTable);
-      byId('filterSeverity').addEventListener('change', renderTable);
-      byId('filterJurisdiction').addEventListener('change', renderTable);
-
-      document.querySelectorAll('.chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          sound.click();
-          document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          const filter = chip.getAttribute('data-filter');
-          byId('filterSeverity').value = filter === 'ALL' ? '' : filter;
-          renderTable();
-        });
-      });
-
-      // Bootstrap
-      try {
-        state.apiUrl = localStorage.getItem(API_KEY) || '';
-        byId('apiUrl').value = state.apiUrl;
-      } catch (e) { state.apiUrl = ''; }
-
-      if (localStorage.getItem(AUDIO_KEY) === 'false') {
-        byId('soundToggleBtn').classList.remove('active');
-        byId('soundLabel').textContent = 'MUTED';
       }
 
-      state.incidents = getStoredIncidents();
-      initializeMap();
-      renderAll();
+      // Initialize Application
+      function init() {
+        try {
+          state.apiUrl = localStorage.getItem(API_ENDPOINT_KEY) || '';
+          byId('inputApiEndpoint').value = state.apiUrl;
+        } catch (e) { state.apiUrl = ''; }
 
-      if (state.apiUrl) {
-        syncFromApi();
-      } else {
-        setConnection('demo');
+        state.incidents = loadStoredIncidents();
+        state.activeId = state.incidents[0]?.incident_id || null;
+
+        bindEvents();
+        initLeafletMap();
+        renderRegistryTable();
+        renderMapLayers();
+        renderDossier(state.incidents[0] || null);
+
+        if (state.apiUrl) {
+          triggerApiSync(true);
+        } else {
+          updateConnectionStatus('demo', 'LOCAL DEMO MODE');
+        }
+
+        // UTC Clock
+        setInterval(() => {
+          const d = new Date();
+          const pad = n => String(n).padStart(2, '0');
+          byId('footerClock').textContent = `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+        }, 1000);
       }
 
-      // Update footer UTC clock
-      setInterval(() => {
-        const d = new Date();
-        const pad = n => String(n).padStart(2, '0');
-        byId('footerClock').textContent = `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
-      }, 1000);
-
+      init();
     })();
   </script>
 </body>
