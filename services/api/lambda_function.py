@@ -1,6 +1,7 @@
 """PRANA-VAYU API Lambda: incident intake, DynamoDB persistence and dual Bedrock/Gemini analysis."""
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import os
@@ -12,8 +13,12 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
-import boto3
-from botocore.config import Config
+try:
+    import boto3
+    from botocore.config import Config
+except ImportError:
+    boto3 = None
+    Config = None
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
@@ -33,14 +38,83 @@ CORS_HEADERS: dict[str, str] = {
     "Cache-Control": "no-store",
 }
 JSON_ENCODER = json.JSONEncoder(default=str)
-AWS_CONFIG = Config(connect_timeout=3, read_timeout=12, retries={"max_attempts": 2, "mode": "standard"})
+AWS_CONFIG = Config(connect_timeout=3, read_timeout=12, retries={"max_attempts": 2, "mode": "standard"}) if Config else None
 _DDB_RESOURCE: Any = None
 _BEDROCK_CLIENT: Any = None
 _TABLE: Any = None
 
+
+class _InMemoryTable:
+    def __init__(self) -> None:
+        self._items: dict[str, dict[str, Any]] = {
+            "PV-SEED-001": {
+                "incident_id": "PV-SEED-001",
+                "timestamp": int(time.time()),
+                "iso_date": datetime.now(timezone.utc).isoformat(),
+                "jurisdiction": "India",
+                "zone": "Samayapuram University Perimeter, Gate 4",
+                "source": "Biomass burning",
+                "severity": "Severe",
+                "lifecycle_state": "ResponseActive",
+                "notes": "Dense leaf and mixed plastic smoldering in stormwater ditch upwind of student hostel block B intake.",
+                "latitude": 10.9205,
+                "longitude": 78.7410,
+                "analysis": {
+                    "particulate_profile": "Combustion products include inhalable fine particles, carbon monoxide, and volatile organic vapors. No concentration measured by this platform.",
+                    "immediate_protocol": ["Maintain safe distance; deploy 15-minute low pressure water mist dousing if safe.", "Reroute pedestrians 120m upwind."],
+                    "long_term_engineering": "Evaluate composting solutions and plant high-APTI native vegetative buffers (Peepal, Neem, Kaner).",
+                    "statutory_memo": "Section 19(5) Air (Prevention and Control of Pollution) Act, 1981 prohibits unauthorized open burning in air pollution control areas."
+                }
+            }
+        }
+
+    def scan(self, Limit: int = 50) -> dict[str, Any]:
+        items = list(self._items.values())
+        return {"Items": items[:Limit]}
+
+    def get_item(self, Key: dict[str, Any]) -> dict[str, Any]:
+        pk = Key.get("incident_id")
+        return {"Item": self._items.get(pk)}
+
+    def put_item(self, Item: dict[str, Any], ConditionExpression: str = "") -> None:
+        pk = Item.get("incident_id")
+        if not pk:
+            raise ValueError("Item missing incident_id")
+        self._items[pk] = dict(Item)
+
+    def update_item(self, Key: dict[str, Any], UpdateExpression: str = "", ExpressionAttributeValues: dict[str, Any] = None, ReturnValues: str = "ALL_NEW") -> dict[str, Any]:
+        pk = Key.get("incident_id")
+        item = self._items.get(pk)
+        if not item:
+            raise KeyError("Item not found")
+        vals = ExpressionAttributeValues or {}
+        if ":s" in vals:
+            item["lifecycle_state"] = vals[":s"]
+        if ":u" in vals:
+            item["updated_at"] = vals[":u"]
+        return {"Attributes": dict(item)}
+
 ALLOWED_JURISDICTIONS = {"India", "US", "UK", "EU", "Global"}
 ALLOWED_SOURCES = {"Biomass burning", "Vehicle idling", "Silica dust", "Kitchen exhaust", "Perimeter waste combustion"}
 ALLOWED_SEVERITIES = {"Moderate", "High", "Severe"}
+VALID_LIFECYCLE_STATES: frozenset[str] = frozenset({
+    "Reported",
+    "Validated",
+    "Assessed",
+    "ResponseActive",
+    "Documented",
+    "Resolved",
+    "Archived",
+})
+ALLOWED_TRANSITIONS: dict[str, set[str]] = {
+    "Reported": {"Validated", "Archived"},
+    "Validated": {"Assessed", "Archived"},
+    "Assessed": {"ResponseActive", "Archived"},
+    "ResponseActive": {"Documented", "Archived"},
+    "Documented": {"Resolved", "Archived"},
+    "Resolved": {"Archived"},
+    "Archived": set(),
+}
 
 
 def response(status_code: int, payload: Any) -> dict[str, Any]:
@@ -54,6 +128,11 @@ def response(status_code: int, payload: Any) -> dict[str, Any]:
 
 def _clients() -> tuple[Any, Any]:
     global _DDB_RESOURCE, _BEDROCK_CLIENT, _TABLE
+    if boto3 is None:
+        if _TABLE is None:
+            _TABLE = _InMemoryTable()
+        return _TABLE, None
+
     if _DDB_RESOURCE is None:
         _DDB_RESOURCE = boto3.resource("dynamodb", region_name=AWS_REGION, config=AWS_CONFIG)
         _TABLE = _DDB_RESOURCE.Table(TABLE_NAME)
@@ -333,6 +412,79 @@ def _handle_post(event: Mapping[str, Any], table: Any, bedrock: Any) -> dict[str
     return response(201, {"record": record})
 
 
+def _handle_transition(event: Mapping[str, Any], table: Any) -> dict[str, Any]:
+    raw_body = event.get("body")
+    if not raw_body:
+        return response(400, {"error": "Missing request body"})
+    if event.get("isBase64Encoded"):
+        try:
+            raw_body = base64.b64decode(raw_body).decode("utf-8")
+        except Exception:
+            return response(400, {"error": "Invalid base64 payload"})
+    try:
+        payload = json.loads(raw_body) if isinstance(raw_body, str) else raw_body
+    except Exception:
+        return response(400, {"error": "Request body must be valid JSON"})
+    if not isinstance(payload, dict):
+        return response(400, {"error": "JSON request body must be an object"})
+
+    incident_id = payload.get("incident_id")
+    target_state = payload.get("target_state")
+
+    if not incident_id or not isinstance(incident_id, str) or not incident_id.strip():
+        return response(400, {"error": "incident_id is required and must be a non-empty string"})
+    incident_id = incident_id.strip()
+
+    if not target_state or target_state not in VALID_LIFECYCLE_STATES:
+        return response(400, {"error": f"target_state must be one of: {', '.join(sorted(VALID_LIFECYCLE_STATES))}"})
+
+    try:
+        get_res = table.get_item(Key={"incident_id": incident_id})
+    except Exception as exc:
+        LOGGER.exception("DynamoDB get_item failed during transition (%s)", type(exc).__name__)
+        return response(503, {"error": "Database lookup failed", "request_id": str(uuid.uuid4())})
+
+    item = get_res.get("Item")
+    if not item:
+        return response(404, {"error": f"Incident {incident_id} not found"})
+
+    current_state = item.get("lifecycle_state", "Reported")
+    if current_state == target_state:
+        return response(200, {
+            "incident_id": incident_id,
+            "previous_state": current_state,
+            "lifecycle_state": target_state,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        })
+
+    allowed = ALLOWED_TRANSITIONS.get(current_state, set())
+    if target_state not in allowed:
+        return response(422, {
+            "error": f"Invalid state transition from {current_state} to {target_state}",
+            "current_state": current_state,
+            "allowed_transitions": sorted(allowed)
+        })
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    try:
+        update_res = table.update_item(
+            Key={"incident_id": incident_id},
+            UpdateExpression="SET lifecycle_state = :s, updated_at = :u",
+            ExpressionAttributeValues={":s": target_state, ":u": now_iso},
+            ReturnValues="ALL_NEW"
+        )
+        return response(200, {
+            "incident_id": incident_id,
+            "previous_state": current_state,
+            "lifecycle_state": target_state,
+            "updated_at": now_iso,
+            "record": update_res.get("Attributes")
+        })
+    except Exception as exc:
+        LOGGER.exception("DynamoDB update_item failed (%s)", type(exc).__name__)
+        return response(503, {"error": "Failed to update incident state in database", "request_id": str(uuid.uuid4())})
+
+
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """Handle API Gateway HTTP API v2 events and fail closed with structured responses."""
     method = str((event.get("requestContext", {}).get("http", {}).get("method") or event.get("httpMethod") or "GET")).upper()
@@ -340,11 +492,33 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         return {"statusCode": 200, "headers": dict(CORS_HEADERS), "body": ""}
     if method not in {"GET", "POST"}:
         return response(405, {"error": "Method not allowed"})
+
+    path = str(
+        event.get("rawPath")
+        or event.get("requestContext", {}).get("http", {}).get("path")
+        or event.get("path")
+        or ""
+    ).rstrip("/")
+
+    if method == "GET" and path.endswith("/health"):
+        return response(200, {
+            "status": "ok",
+            "service": "prana-vayu-serverless-api",
+            "runtime": "python3.12",
+            "author": "SARVEPALLI AUDI SIVA BHANUVARDHAN",
+            "brand": "AS PHENIX"
+        })
+
     try:
         table, bedrock = _clients()
     except Exception as exc:
         LOGGER.exception("AWS client initialization failed (%s)", type(exc).__name__)
         return response(503, {"error": "Backend services are temporarily unavailable", "request_id": str(uuid.uuid4())})
+
     if method == "GET":
         return _handle_get(table)
+
+    if path.endswith("/transition"):
+        return _handle_transition(event, table)
+
     return _handle_post(event, table, bedrock)

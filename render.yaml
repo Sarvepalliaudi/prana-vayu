@@ -1,0 +1,65 @@
+# ==============================================================================
+# PRANA-VAYU (प्राण-वायु) — Render.com Blueprint Infrastructure Specification
+# Developer: SARVEPALLI AUDI SIVA BHANUVARDHAN | Brand: AS PHENIX
+# Track: Bharat Builds Environmental Hacks Air Track
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. PRANA-VAYU Production Web Application & Operations Console (Static Site)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: prana-vayu-web
+    env: static
+    buildCommand: node -e "const fs=require('fs'); fs.mkdirSync('dist', {recursive:true}); fs.copyFileSync('index.html', 'dist/index.html');" || (mkdir -p dist && cp index.html dist/index.html)
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # ----------------------------------------------------------------------------
+  # 2. PRANA-VAYU High-Assurance Rust Systems Engine (Native Web Service)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: prana-vayu-rust-core
+    env: rust
+    plan: free
+    buildCommand: cargo build --release -p prana-core
+    startCommand: ./target/release/prana_core
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+
+  # ----------------------------------------------------------------------------
+  # 3. PRANA-VAYU Python Serverless Engine (Web Service Bridge)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: prana-vayu-python-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt || true
+    startCommand: python server.py
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+      - key: AI_PROVIDER
+        value: FALLBACK
+      - key: TABLE_NAME
+        value: PRANA_VAYU_Incidents

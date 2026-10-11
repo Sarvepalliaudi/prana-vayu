@@ -1,12 +1,9 @@
 version: 1
 frontend:
   phases:
-    preBuild:
-      commands:
-        - echo "PRANA-VAYU pre-build verified."
     build:
       commands:
-        - npm run build
+        - node -e "const fs=require('fs'); fs.mkdirSync('dist', {recursive:true}); fs.copyFileSync('index.html', 'dist/index.html');" || (mkdir -p dist && cp index.html dist/index.html)
   artifacts:
     baseDirectory: dist
     files:

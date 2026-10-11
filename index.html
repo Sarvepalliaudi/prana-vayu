@@ -1434,14 +1434,14 @@ git push origin main
             <span id="cConnPill" class="tag live">LOCAL DEMO READY</span>
           </div>
 
-          <!-- Backend Integration Bar (Rust Systems Engine & AWS Cloud Gateway) -->
+          <!-- Backend Integration Bar (AWS Cloud API Gateway & Local Dev Engine) -->
           <div class="aws-gateway-bar">
             <div class="aws-endpoint-wrap">
               <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);white-space:nowrap;">BACKEND ENGINE:</span>
-              <input id="awsEndpointInput" class="aws-endpoint-input" type="url" placeholder="http://127.0.0.1:8080 or https://xxxx.execute-api.ap-south-1.amazonaws.com" spellcheck="false" title="Enter Rust Server (http://127.0.0.1:8080) or AWS API Gateway endpoint URL">
-              <button id="btnConnectRust" class="btn small" type="button" title="Quick-fill &amp; connect to local Rust engine at http://127.0.0.1:8080">🦀 Local Rust Core</button>
+              <input id="awsEndpointInput" class="aws-endpoint-input" type="url" placeholder="https://xxxx.execute-api.ap-south-1.amazonaws.com (or http://127.0.0.1:8080 for dev)" spellcheck="false" title="Enter AWS API Gateway endpoint URL (Production) or local Rust server">
               <button id="btnSaveEndpoint" class="btn small primary" type="button">Connect &amp; Sync</button>
-              <button id="btnResetEndpoint" class="btn small" type="button" title="Disconnect and revert to local storage sandbox">Reset Local</button>
+              <button id="btnConnectRust" class="btn small" type="button" title="Dev only: Quick-fill local Rust engine at http://127.0.0.1:8080">🦀 Local Rust (Dev)</button>
+              <button id="btnResetEndpoint" class="btn small" type="button" title="Disconnect and revert to offline local sandbox">Reset to Sandbox</button>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <span id="awsSyncStatus" style="font-size:11px;color:var(--text-dim);font-family:var(--font-mono);"></span>

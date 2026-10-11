@@ -297,7 +297,8 @@ fn handle_client(mut stream: TcpStream, state: Arc<Mutex<ServerState>>) {
 
 fn main() {
     let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
-    let addr = format!("127.0.0.1:{}", port);
+    let host = std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
+    let addr = format!("{}:{}", host, port);
 
     let listener = match TcpListener::bind(&addr) {
         Ok(l) => l,

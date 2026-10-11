@@ -263,6 +263,108 @@ class TestPranaVayuLambda(unittest.TestCase):
             self.assertIn("temporarily unavailable", body["error"])
             self.assertNotIn("Traceback", body["error"])
 
+    def test_get_health(self) -> None:
+        """GET /health must return 200 OK with service metadata."""
+        event = {
+            "httpMethod": "GET",
+            "rawPath": "/health",
+            "requestContext": {"http": {"method": "GET", "path": "/health"}},
+        }
+        res = lambda_function.lambda_handler(event, None)
+        self.assertEqual(res["statusCode"], 200)
+        body = json.loads(res["body"])
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["service"], "prana-vayu-serverless-api")
+
+    def test_transition_incident_success(self) -> None:
+        """POST /incidents/transition must transition state from Reported to Validated."""
+        self.mock_table.get_item.return_value = {
+            "Item": {
+                "incident_id": "test-uuid-001",
+                "lifecycle_state": "Reported",
+                "zone": "Gate 4 Perimeter"
+            }
+        }
+        self.mock_table.update_item.return_value = {
+            "Attributes": {
+                "incident_id": "test-uuid-001",
+                "lifecycle_state": "Validated",
+                "zone": "Gate 4 Perimeter"
+            }
+        }
+        event = {
+            "httpMethod": "POST",
+            "rawPath": "/incidents/transition",
+            "requestContext": {"http": {"method": "POST", "path": "/incidents/transition"}},
+            "body": json.dumps({
+                "incident_id": "test-uuid-001",
+                "target_state": "Validated"
+            }),
+        }
+        with patch.object(lambda_function, "_clients", return_value=(self.mock_table, self.mock_bedrock)):
+            res = lambda_function.lambda_handler(event, None)
+            self.assertEqual(res["statusCode"], 200)
+            body = json.loads(res["body"])
+            self.assertEqual(body["lifecycle_state"], "Validated")
+            self.assertEqual(body["previous_state"], "Reported")
+            self.mock_table.update_item.assert_called_once()
+
+    def test_transition_incident_illegal_leap(self) -> None:
+        """Attempting to jump from Reported to Resolved must be rejected with 422."""
+        self.mock_table.get_item.return_value = {
+            "Item": {
+                "incident_id": "test-uuid-002",
+                "lifecycle_state": "Reported"
+            }
+        }
+        event = {
+            "httpMethod": "POST",
+            "rawPath": "/incidents/transition",
+            "requestContext": {"http": {"method": "POST", "path": "/incidents/transition"}},
+            "body": json.dumps({
+                "incident_id": "test-uuid-002",
+                "target_state": "Resolved"
+            }),
+        }
+        with patch.object(lambda_function, "_clients", return_value=(self.mock_table, self.mock_bedrock)):
+            res = lambda_function.lambda_handler(event, None)
+            self.assertEqual(res["statusCode"], 422)
+            body = json.loads(res["body"])
+            self.assertIn("Invalid state transition", body["error"])
+
+    def test_transition_incident_not_found(self) -> None:
+        """Transition on non-existent incident must return 404."""
+        self.mock_table.get_item.return_value = {"Item": None}
+        event = {
+            "httpMethod": "POST",
+            "rawPath": "/incidents/transition",
+            "requestContext": {"http": {"method": "POST", "path": "/incidents/transition"}},
+            "body": json.dumps({
+                "incident_id": "unknown-uuid",
+                "target_state": "Validated"
+            }),
+        }
+        with patch.object(lambda_function, "_clients", return_value=(self.mock_table, self.mock_bedrock)):
+            res = lambda_function.lambda_handler(event, None)
+            self.assertEqual(res["statusCode"], 404)
+
+    def test_transition_incident_invalid_state(self) -> None:
+        """Invalid target state string must return 400 Bad Request."""
+        event = {
+            "httpMethod": "POST",
+            "rawPath": "/incidents/transition",
+            "requestContext": {"http": {"method": "POST", "path": "/incidents/transition"}},
+            "body": json.dumps({
+                "incident_id": "test-uuid-003",
+                "target_state": "CompletelyFakeState"
+            }),
+        }
+        with patch.object(lambda_function, "_clients", return_value=(self.mock_table, self.mock_bedrock)):
+            res = lambda_function.lambda_handler(event, None)
+            self.assertEqual(res["statusCode"], 400)
+            body = json.loads(res["body"])
+            self.assertIn("target_state must be one of", body["error"])
+
 
 if __name__ == "__main__":
     unittest.main()
