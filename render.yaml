@@ -33,8 +33,8 @@ services:
     name: prana-vayu-rust-core
     env: rust
     plan: free
-    buildCommand: cargo build --release -p prana-core
-    startCommand: ./target/release/prana_core
+    buildCommand: cargo build --release -p prana-core && (cp target/release/prana-core target/release/prana_core 2>/dev/null || true)
+    startCommand: ./target/release/prana-core
     healthCheckPath: /health
     autoDeploy: true
     envVars:
