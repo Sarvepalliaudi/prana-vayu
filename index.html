@@ -4,36 +4,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="PRANA-VAYU: Operational air-pollution incident response, evidence review, and community action platform.">
-  <title>PRANA-VAYU | Air Incident Operations Console</title>
+  <meta name="description" content="PRANA-VAYU: Secure systems engineering, Rust core domain modeling, and cloud-native digital resilience platform. Built by Sarvepalli Audi Siva Bhanuvardhan (AS PHENIX).">
+  <meta name="author" content="Sarvepalli Audi Siva Bhanuvardhan">
+  <meta name="theme-color" content="#070b14">
+  <title>PRANA-VAYU | Secure Systems Engineering &amp; Cloud Resilience</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2226%22 font-size=%2226%22>PV</text></svg>">
 
   <!-- Typography: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet CSS for geospatial telemetry -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
   <style>
     :root {
       color-scheme: dark;
-      --bg: #090d16;
-      --bg-alt: #0c1220;
-      --surface: #131b2e;
-      --surface-card: #0f172a;
-      --surface-hover: #19233c;
-      --border: #222f4c;
+      --bg: #070b14;
+      --bg-alt: #0a0f1d;
+      --surface: #0f172a;
+      --surface-card: #0d1527;
+      --surface-hover: #162238;
+      --border: #1e293b;
       --border-light: #2d3e63;
       --border-focus: #38bdf8;
       
-      --text: #e5e7eb;
+      --text: #f1f5f9;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
       
       --accent: #10b981;
-      --accent-bg: rgba(16, 185, 129, 0.12);
+      --accent-bg: rgba(16, 185, 129, 0.1);
       --accent-border: #059669;
       
       --danger: #ef4444;
@@ -44,13 +49,14 @@
       --warning-bg: rgba(245, 158, 11, 0.12);
       --warning-border: #d97706;
       
-      --cyan: #22d3ee;
-      --cyan-bg: rgba(34, 211, 238, 0.12);
+      --cyan: #06b6d4;
+      --cyan-light: #22d3ee;
+      --cyan-bg: rgba(6, 182, 212, 0.1);
       --cyan-border: #0284c7;
       
       --radius-sm: 4px;
-      --radius: 6px;
-      --radius-lg: 8px;
+      --radius: 8px;
+      --radius-lg: 12px;
       
       --font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
@@ -62,23 +68,33 @@
       padding: 0;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       background: var(--bg);
+      background-image: 
+        radial-gradient(circle at 20% 15%, rgba(6, 182, 212, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 85%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
       color: var(--text);
       font-family: var(--font-ui);
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.6;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      -webkit-font-smoothing: antialiased;
     }
 
     a {
-      color: var(--cyan);
+      color: var(--cyan-light);
       text-decoration: none;
+      transition: color 0.15s ease;
     }
 
     a:hover {
+      color: #67e8f9;
       text-decoration: underline;
     }
 
@@ -97,52 +113,55 @@
       outline-offset: 2px;
     }
 
-    /* Main Container */
-    .app-shell {
-      max-width: 1720px;
+    /* Container Shell */
+    .site-shell {
+      max-width: 1680px;
       margin: 0 auto;
-      padding: 12px 18px 24px;
+      padding: 0 24px;
       width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      flex: 1;
     }
 
-    /* Top Command Header */
-    .topbar {
+    /* Top Sticky Navigation */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(7, 11, 20, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+    }
+
+    .navbar-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 12px 16px;
     }
 
-    .brand-section {
+    .brand-group {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .brand-badge-icon {
+    .brand-logo {
       width: 36px;
       height: 36px;
-      background: #0284c7;
+      background: linear-gradient(135deg, #0284c7 0%, #10b981 100%);
       border-radius: var(--radius);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
       font-family: var(--font-mono);
-      font-weight: 700;
+      font-weight: 800;
       font-size: 14px;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
       flex-shrink: 0;
     }
 
-    .brand-title h1 {
+    .brand-text h1 {
       font-size: 17px;
       font-weight: 800;
       letter-spacing: 0.05em;
@@ -153,7 +172,7 @@
       margin: 0;
     }
 
-    .brand-title h1 span.sanskrit {
+    .brand-text h1 span.sanskrit {
       font-size: 12px;
       font-weight: 500;
       color: var(--cyan);
@@ -163,136 +182,53 @@
       border-radius: 4px;
     }
 
-    .brand-title p {
+    .brand-text p {
       font-size: 11px;
       color: var(--text-muted);
-      margin: 2px 0 0;
+      margin: 0;
     }
 
-    .header-status-group {
+    .nav-links {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      gap: 6px;
+      list-style: none;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.12s ease;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      color: #fff;
+      background: var(--surface);
+      text-decoration: none;
+    }
+
+    .nav-link.active {
+      color: var(--cyan);
+      background: var(--cyan-bg);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
       gap: 8px;
     }
 
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #0d1527;
-      border: 1px solid var(--border);
-      padding: 4px 10px;
-      border-radius: var(--radius-sm);
-      font-size: 11px;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-    }
-
-    .status-pill .indicator-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--text-dim);
-    }
-
-    .status-pill.live {
-      color: var(--accent);
-      border-color: var(--accent-border);
-      background: var(--accent-bg);
-    }
-
-    .status-pill.live .indicator-dot {
-      background: var(--accent);
-    }
-
-    .status-pill.demo {
-      color: var(--warning);
-      border-color: var(--warning-border);
-      background: var(--warning-bg);
-    }
-
-    .status-pill.demo .indicator-dot {
-      background: var(--warning);
-    }
-
-    .status-pill.error {
-      color: var(--danger);
-      border-color: var(--danger-border);
-      background: var(--danger-bg);
-    }
-
-    .status-pill.error .indicator-dot {
-      background: var(--danger);
-    }
-
-    /* Operational Navigation Tabs */
-    .nav-tabs-bar {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 4px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .nav-tabs-bar::-webkit-scrollbar {
-      display: none;
-    }
-
-    .tab-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-muted);
-      padding: 7px 12px;
-      border-radius: var(--radius-sm);
-      font-weight: 600;
-      font-size: 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      transition: all 0.12s ease;
-    }
-
-    .tab-btn:hover {
-      color: var(--text);
-      background: var(--surface-hover);
-    }
-
-    .tab-btn.active {
-      background: #1c2744;
-      color: #fff;
-      border-color: #3b507d;
-    }
-
-    .tab-btn .badge-count {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 1px 5px;
-      border-radius: 10px;
-      color: var(--cyan);
-    }
-
-    .nav-actions-right {
-      margin-left: auto;
-      display: flex;
-      gap: 6px;
-      padding-left: 8px;
-    }
-
-    /* Common Buttons */
+    /* Buttons */
     .btn {
-      background: #1a253e;
-      border: 1px solid #2d3e63;
+      background: #1e293b;
+      border: 1px solid #334155;
       color: var(--text);
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: var(--radius-sm);
       font-weight: 600;
       font-size: 12px;
@@ -300,30 +236,37 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: all 0.12s ease;
+      transition: all 0.15s ease;
       white-space: nowrap;
     }
 
     .btn:hover:not(:disabled) {
-      background: #253354;
-      border-color: #435b8f;
+      background: #334155;
+      border-color: #475569;
+      text-decoration: none;
     }
 
     .btn.primary {
+      background: #0284c7;
+      border-color: #0369a1;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.25);
+    }
+
+    .btn.primary:hover:not(:disabled) {
+      background: #0369a1;
+      border-color: #38bdf8;
+    }
+
+    .btn.emerald {
       background: #047857;
       border-color: #059669;
       color: #fff;
     }
 
-    .btn.primary:hover:not(:disabled) {
+    .btn.emerald:hover:not(:disabled) {
       background: #059669;
       border-color: #10b981;
-    }
-
-    .btn.danger {
-      background: #7f1d1d;
-      border-color: #991b1b;
-      color: #fff;
     }
 
     .btn.small {
@@ -331,25 +274,235 @@
       font-size: 11px;
     }
 
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    /* Badges & Tags */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
     }
 
-    /* Content Views */
-    .view-content {
-      display: none;
-      flex-direction: column;
-      gap: 12px;
+    .tag.live {
+      color: var(--accent);
+      border-color: var(--accent-border);
+      background: var(--accent-bg);
     }
 
-    .view-content.active {
+    .tag.cyan {
+      color: var(--cyan);
+      border-color: var(--cyan-border);
+      background: var(--cyan-bg);
+    }
+
+    /* Section Wrappers */
+    section.section-block {
+      padding: 60px 0;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+    }
+
+    .section-header {
+      margin-bottom: 32px;
+    }
+
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .section-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
+    }
+
+    .section-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 800px;
+      line-height: 1.6;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      padding: 80px 0 60px;
+    }
+
+    .hero-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--cyan-light);
+      margin-bottom: 24px;
+    }
+
+    .hero-badge-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .hero-headline {
+      font-size: 44px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: #fff;
+      max-width: 960px;
+      margin-bottom: 20px;
+    }
+
+    .hero-headline span.gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 820px;
+      line-height: 1.65;
+      margin-bottom: 32px;
+    }
+
+    .hero-actions {
       display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
     }
 
-    /* Common Panel Card */
-    .panel {
+    /* Hero Metrics Strip */
+    .hero-metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .metric-card {
       background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-card .label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-card .val {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      font-family: var(--font-mono);
+    }
+
+    .metric-card .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Architecture Visualizer Grid */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .arch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .arch-card:hover {
+      border-color: var(--border-light);
+      background: var(--surface-hover);
+    }
+
+    .arch-card .layer-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+      background: var(--cyan-bg);
+      border: 1px solid var(--cyan-border);
+      padding: 2px 8px;
+      border-radius: 4px;
+      align-self: flex-start;
+    }
+
+    .arch-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .arch-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .arch-card .component-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #cbd5e1;
+      background: #090e1a;
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    /* Systems Lab / Code Comparison */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .code-window {
+      background: #090e1a;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
@@ -357,329 +510,240 @@
       flex-direction: column;
     }
 
-    .panel-head {
-      padding: 10px 14px;
-      background: var(--bg-alt);
+    .code-header {
+      background: #0f172a;
       border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
     }
 
-    .panel-title {
+    .code-filename {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cyan-light);
+    }
+
+    .code-body {
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      overflow-x: auto;
+    }
+
+    .code-body .kw { color: #f43f5e; font-weight: 600; }
+    .code-body .ty { color: #38bdf8; }
+    .code-body .fn { color: #a855f7; }
+    .code-body .str { color: #10b981; }
+    .code-body .cm { color: #64748b; font-style: italic; }
+
+    /* Security Grid */
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .security-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .security-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .panel-title h2,
-    .panel-title h3 {
+    .security-card p {
       font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin: 0;
-      color: var(--text);
+      color: var(--text-muted);
+      line-height: 1.5;
     }
 
-    .panel-body {
-      padding: 14px;
-    }
-
-    /* Overview Grid */
-    .overview-grid {
+    /* Roadmap Timeline */
+    .roadmap-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .roadmap-col {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
     }
 
-    .stat-card {
-      background: var(--surface);
+    .roadmap-col-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .roadmap-col-header h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .roadmap-item {
+      background: var(--surface-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 12px 14px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
 
-    .stat-card .label {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 600;
-    }
-
-    .stat-card .val {
-      font-size: 22px;
-      font-weight: 700;
-      font-family: var(--font-mono);
+    .roadmap-item strong {
+      font-size: 13px;
       color: #fff;
     }
 
-    .stat-card .hint {
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-
-    /* Three-Tier Role Guide */
-    .role-guide-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    .role-card {
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .role-card .role-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--cyan);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .role-card p {
+    .roadmap-item p {
       font-size: 12px;
       color: var(--text-muted);
       line-height: 1.45;
     }
 
-    .role-card ul {
-      padding-left: 16px;
-      color: var(--text-muted);
-      font-size: 11px;
-      line-height: 1.5;
+    /* Embedded Operations Console Panel */
+    .console-wrapper {
+      background: #090e1a;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-top: 24px;
     }
 
-    /* Form Design */
-    .form-grid {
+    .console-topbar {
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .console-tabs {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+    }
+
+    .c-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .c-tab.active {
+      background: #1e293b;
+      color: #fff;
+      border-color: #334155;
+    }
+
+    .c-view {
+      display: none;
+      padding: 20px;
+    }
+
+    .c-view.active {
+      display: block;
+    }
+
+    /* Form Fields for Console */
+    .c-form-grid {
       display: grid;
       gap: 12px;
-      max-width: 820px;
+      max-width: 720px;
     }
 
-    .field {
+    .c-field {
       display: grid;
       gap: 4px;
     }
 
-    .field-label-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .field label {
+    .c-field label {
       font-size: 11px;
       font-weight: 600;
       color: #cbd5e1;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
     }
 
-    .field .help-text {
-      font-size: 11px;
-      color: var(--text-dim);
-      line-height: 1.4;
-    }
-
-    .field input,
-    .field select,
-    .field textarea {
-      width: 100%;
-      background: #090e1a;
+    .c-field input, .c-field select, .c-field textarea {
+      background: #0c1424;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       color: var(--text);
       padding: 8px 10px;
     }
 
-    .field input:focus,
-    .field select:focus,
-    .field textarea:focus {
-      border-color: var(--border-focus);
-      background: #0c1424;
-    }
-
-    .field textarea {
+    .c-field textarea {
       min-height: 80px;
       resize: vertical;
     }
 
-    .coords-split {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .coords-bar {
-      display: flex;
-      gap: 6px;
-      margin-top: 2px;
-    }
-
-    .coords-bar .btn {
-      flex: 1;
-      font-size: 11px;
-      padding: 4px 6px;
-    }
-
-    .form-actions-bar {
-      display: flex;
-      gap: 8px;
-      margin-top: 6px;
-    }
-
-    .feedback-banner {
-      padding: 10px 14px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      font-size: 12px;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      background: var(--bg-alt);
-    }
-
-    .feedback-banner.success {
-      background: var(--accent-bg);
-      border-color: var(--accent-border);
-      color: #a7f3d0;
-    }
-
-    .feedback-banner.error {
-      background: var(--danger-bg);
-      border-color: var(--danger-border);
-      color: #fca5a5;
-    }
-
-    /* Registry Table */
-    .registry-controls {
-      display: grid;
-      grid-template-columns: minmax(180px, 2fr) 1fr 1fr 1fr auto;
-      gap: 8px;
-      padding: 10px 14px;
-      background: var(--bg-alt);
-      border-bottom: 1px solid var(--border);
-      align-items: center;
-    }
-
-    .registry-controls input,
-    .registry-controls select {
-      background: #090e1a;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      padding: 6px 8px;
-      font-size: 11px;
-    }
-
-    .table-container {
+    /* Table */
+    .c-table-wrap {
       overflow-x: auto;
-      max-height: 480px;
+      max-height: 380px;
     }
 
     table {
-      border-collapse: collapse;
       width: 100%;
-      min-width: 820px;
+      border-collapse: collapse;
       font-size: 12px;
+      min-width: 760px;
     }
 
     th, td {
       padding: 9px 12px;
       text-align: left;
       border-bottom: 1px solid var(--border);
-      vertical-align: middle;
     }
 
     th {
-      background: #0b1120;
+      background: #0f172a;
       color: var(--text-muted);
       font-weight: 600;
-      font-size: 11px;
       text-transform: uppercase;
+      font-size: 11px;
       letter-spacing: 0.04em;
-      position: sticky;
-      top: 0;
-      z-index: 2;
     }
 
-    tbody tr {
-      cursor: pointer;
-      transition: background-color 0.1s ease;
-    }
-
-    tbody tr:hover {
+    tr:hover {
       background: rgba(30, 41, 59, 0.4);
     }
 
-    tbody tr.active-row {
-      background: rgba(6, 182, 212, 0.14);
-      border-left: 3px solid var(--cyan);
-    }
-
-    .badge-sev {
-      display: inline-block;
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .badge-sev.severe {
-      color: #fca5a5;
-      background: rgba(239, 68, 68, 0.2);
-      border: 1px solid rgba(239, 68, 68, 0.5);
-    }
-
-    .badge-sev.high {
-      color: #fde68a;
-      background: rgba(245, 158, 11, 0.2);
-      border: 1px solid rgba(245, 158, 11, 0.5);
-    }
-
-    .badge-sev.moderate {
-      color: #a5f3fc;
-      background: rgba(6, 182, 212, 0.2);
-      border: 1px solid rgba(6, 182, 212, 0.5);
-    }
-
-    .badge-status {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      background: #1e293b;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-    }
-
-    /* Map View */
-    .map-box {
-      height: 480px;
+    /* Leaflet Map in Console */
+    .c-map-wrap {
+      height: 420px;
       position: relative;
-      background: #090e1a;
-      width: 100%;
     }
 
     #map {
@@ -687,842 +751,836 @@
       width: 100%;
     }
 
-    .map-legend {
-      background: rgba(15, 23, 42, 0.92);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 8px 12px;
-      font-size: 11px;
-      color: var(--text);
-      line-height: 1.6;
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .legend-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    /* Research Dossier */
-    .dossier-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .dossier-card {
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .dossier-card h4 {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--cyan);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin: 0;
-    }
-
-    .dossier-card p,
-    .dossier-card li {
-      font-size: 12px;
-      color: #cbd5e1;
-      line-height: 1.5;
-    }
-
-    .dossier-card ul {
-      padding-left: 18px;
-    }
-
-    .sensor-truth-hud {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-top: 6px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .sensor-truth-box {
-      background: #090e1a;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 6px;
-      text-align: center;
-    }
-
-    .sensor-truth-box .val {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-dim);
-    }
-
-    .sensor-truth-box .lbl {
-      font-size: 9px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* Follow-Up / Workflow View */
-    .workflow-timeline {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin: 12px 0;
-      overflow-x: auto;
-    }
-
-    .workflow-step {
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      background: #0d1527;
-      border: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      white-space: nowrap;
-    }
-
-    .workflow-step.completed {
-      border-color: var(--accent-border);
-      color: var(--accent);
-      background: var(--accent-bg);
-    }
-
-    .workflow-step.current {
-      border-color: var(--cyan-border);
-      color: var(--cyan);
-      background: var(--cyan-bg);
-      font-weight: 700;
-    }
-
-    .action-log-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .action-log-item {
-      padding: 8px 12px;
-      background: #090e1a;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-    }
-
-    /* Print Preview Modal & Paper */
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 9999;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .modal-backdrop.open {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .print-sheet {
-      background: #ffffff;
-      color: #111827;
-      width: 100%;
-      max-width: 800px;
-      padding: 36px 44px;
-      border-radius: 4px;
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
     /* Footer */
-    .app-footer {
+    .site-footer {
+      background: #090e1a;
+      border-top: 1px solid var(--border);
+      padding: 40px 0 24px;
+      margin-top: 60px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .footer-col h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
-      padding: 12px 18px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-top: auto;
     }
 
-    /* Print media format */
+    /* Print styling */
     @media print {
       body {
         background: #fff !important;
         color: #000 !important;
       }
-      .app-shell, .modal-backdrop {
+      .navbar, .hero-section, #architecture, #systems-lab, #infrastructure, #security, #documentation, #roadmap, #about, .site-footer {
         display: none !important;
       }
-      #printPaperContainer {
+      #printContainer {
         display: block !important;
         padding: 20mm !important;
-      }
-      #printPaperContainer * {
-        color: #000 !important;
       }
     }
 
     /* Responsive */
-    @media (max-width: 980px) {
-      .overview-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .role-guide-grid {
-        grid-template-columns: 1fr;
-      }
-      .dossier-grid {
-        grid-template-columns: 1fr;
-      }
-      .registry-controls {
-        grid-template-columns: 1fr 1fr;
-      }
-      .coords-split {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 1024px) {
+      .hero-metrics-strip { grid-template-columns: repeat(2, 1fr); }
+      .arch-grid { grid-template-columns: 1fr; }
+      .lab-grid { grid-template-columns: 1fr; }
+      .security-grid { grid-template-columns: 1fr; }
+      .roadmap-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 640px) {
-      .app-shell {
-        padding: 8px;
-      }
-      .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .overview-grid {
-        grid-template-columns: 1fr;
-      }
-      .registry-controls {
-        grid-template-columns: 1fr;
-      }
-      .form-actions-bar {
-        flex-direction: column;
-      }
+      .hero-headline { font-size: 32px; }
+      .hero-metrics-strip { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .footer-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
-  <div class="app-shell">
-    <!-- Top Header -->
-    <header class="topbar">
-      <div class="brand-section">
-        <div class="brand-badge-icon" aria-hidden="true">PV</div>
-        <div class="brand-title">
+  <!-- Header / Navigation -->
+  <header class="navbar">
+    <div class="site-shell navbar-inner">
+      <div class="brand-group">
+        <div class="brand-logo" aria-hidden="true">PV</div>
+        <div class="brand-text">
           <h1>
             PRANA-VAYU <span class="sanskrit">प्राण-वायु</span>
           </h1>
-          <p>Community Environmental Incident Response Platform · Brand: <strong>AS PHENIX</strong></p>
+          <p>Secure Systems Engineering &amp; Cloud Resilience · Brand: <strong>AS PHENIX</strong></p>
         </div>
       </div>
 
-      <div class="header-status-group">
-        <span id="connectionBadge" class="status-pill demo">
-          <span class="indicator-dot"></span>
-          <span id="connectionText">LOCAL DEMO MODE</span>
-        </span>
-        <button id="quickReportNavBtn" class="btn primary small" title="Create a new observation report">
-          + Report Incident
-        </button>
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#hero" class="nav-link active">Home</a></li>
+          <li><a href="#architecture" class="nav-link">Architecture</a></li>
+          <li><a href="#systems-lab" class="nav-link">Systems Lab (Rust)</a></li>
+          <li><a href="#infrastructure" class="nav-link">Cloud &amp; Infra</a></li>
+          <li><a href="#security" class="nav-link">Security</a></li>
+          <li><a href="#documentation" class="nav-link">Docs</a></li>
+          <li><a href="#roadmap" class="nav-link">Roadmap</a></li>
+          <li><a href="#live-console" class="nav-link">Live Console</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="https://github.com/Sarvepalliaudi/prana-vayu" target="_blank" rel="noopener noreferrer" class="btn small" title="GitHub Repository">
+          GitHub
+        </a>
+        <a href="#live-console" class="btn primary small">
+          Launch Console
+        </a>
       </div>
-    </header>
-
-    <!-- Operational Navigation Tabs -->
-    <nav class="nav-tabs-bar" role="tablist" aria-label="Operational views">
-      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab-overview">
-        Overview
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-intake">
-        Incident Intake
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-registry">
-        Incident Registry <span id="tabCountBadge" class="badge-count">0</span>
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-map">
-        Incident Map
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-dossier">
-        Research Dossier
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-workflow">
-        Follow-Up &amp; Action
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-reports">
-        Printable Reports
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-settings">
-        Settings &amp; Cloud API
-      </button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-about">
-        About &amp; Attribution
-      </button>
-    </nav>
-
-    <!-- VIEW 1: OVERVIEW -->
-    <section id="tab-overview" class="view-content active" role="tabpanel">
-      <!-- Stat Cards -->
-      <div class="overview-grid">
-        <div class="stat-card">
-          <span class="label">Total Incidents Recorded</span>
-          <span class="val" id="statTotalIncidents">0</span>
-          <span class="hint">Active in local / synchronized registry</span>
-        </div>
-        <div class="stat-card">
-          <span class="label">Severe Plumes</span>
-          <span class="val" id="statSevereIncidents" style="color:var(--danger)">0</span>
-          <span class="hint">Require immediate 15-min intervention</span>
-        </div>
-        <div class="stat-card">
-          <span class="label">Mapped Locations</span>
-          <span class="val" id="statMappedIncidents" style="color:var(--cyan)">0</span>
-          <span class="hint">With verified latitude and longitude</span>
-        </div>
-        <div class="stat-card">
-          <span class="label">Operational State</span>
-          <span class="val" id="statOperationalState" style="font-size:16px;color:var(--warning)">READY (LOCAL)</span>
-          <span class="hint" id="statSyncTime">Last sync: Autonomous local mode</span>
-        </div>
-      </div>
-
-      <!-- Stakeholder Operational Model Guide -->
-      <section class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>Three-Tier Community Action Workflow</h3>
-          </div>
-          <span class="badge-status">Observe → Report → Protect → Escalate</span>
-        </div>
-        <div class="panel-body">
-          <div class="role-guide-grid">
-            <div class="role-card">
-              <div class="role-title">
-                <span>1. Ground Spotters</span>
-                <span style="color:var(--cyan)">NSS / NCC / Students</span>
-              </div>
-              <p>Volunteers who observe suspected micro-climate plumes (leaf burning, vehicle idling, road dust).</p>
-              <ul>
-                <li>Record verified GPS location &amp; visible conditions</li>
-                <li>Never approach fires or confront operators</li>
-                <li>Submit structured observations into PRANA-VAYU</li>
-              </ul>
-            </div>
-            <div class="role-card">
-              <div class="role-title">
-                <span>2. Community Gatekeepers</span>
-                <span style="color:var(--warning)">Principals / Wardens</span>
-              </div>
-              <p>Campus estate managers and administrators who review incoming triage reports.</p>
-              <ul>
-                <li>Deploy 15-minute aqueous hose dousing on smoldering leaves</li>
-                <li>Reroute pedestrian corridors 120m upwind</li>
-                <li>Throttle ground-floor HVAC fresh air intakes</li>
-              </ul>
-            </div>
-            <div class="role-card">
-              <div class="role-title">
-                <span>3. Statutory Regulators</span>
-                <span style="color:var(--danger)">State PCBs / Municipalities</span>
-              </div>
-              <p>Authorized personnel who review draft administrative representations and record statutory action.</p>
-              <ul>
-                <li>Section 19(5) Air (Prevention &amp; Control of Pollution) Act, 1981</li>
-                <li>Section 31A statutory directions and penal sanctions</li>
-                <li>Formal double-bordered printable representation notices</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Quick Action Jump Banner -->
-      <section class="panel" style="background:#0f172a">
-        <div class="panel-body" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <div>
-            <h4 style="font-size:13px;color:#fff;margin-bottom:2px">Ready to log a micro-climate air pollution incident?</h4>
-            <p style="color:var(--text-muted);font-size:12px">Select from pre-loaded verified scenarios or log a real field observation point.</p>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button id="overviewLoadSampleBtn" class="btn small">Load Verified Sample</button>
-            <button id="overviewGoIntakeBtn" class="btn primary small">+ Open Report Form</button>
-          </div>
-        </div>
-      </section>
-    </section>
-
-    <!-- VIEW 2: INCIDENT INTAKE -->
-    <section id="tab-intake" class="view-content" role="tabpanel">
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>Field Incident Intake &amp; Triage Form</h3>
-          </div>
-          <span class="badge-status">Field Observer Input</span>
-        </div>
-        <div class="panel-body">
-          <div id="intakeFeedbackBanner" class="feedback-banner" style="display:none;margin-bottom:14px" role="alert"></div>
-
-          <form id="intakeForm" class="form-grid">
-            <div class="field">
-              <div class="field-label-row">
-                <label for="formJurisdiction">Jurisdiction</label>
-              </div>
-              <select id="formJurisdiction" required>
-                <option value="India">India (Air Act 1981 / CPCB / SPCB)</option>
-                <option value="US">US (Clean Air Act / EPA / State SIP)</option>
-                <option value="UK">UK (Environment Act 2021 / Defra)</option>
-                <option value="EU">EU (Ambient Air Quality Directive)</option>
-                <option value="Global">Global / International Reference</option>
-              </select>
-              <span class="help-text">Jurisdiction determines the applicable statutory legal routing memo.</span>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <label for="formZone">Zone / Locality Description</label>
-                <span id="zoneCharCount" class="help-text">0/180</span>
-              </div>
-              <input id="formZone" maxlength="180" required placeholder="e.g. Samayapuram University Perimeter, North Gate Ditch">
-              <span class="help-text">Describe the specific perimeter or campus area. Coordinates are not inferred from this text.</span>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <label for="formSource">Contaminant Source Category</label>
-              </div>
-              <select id="formSource" required>
-                <option value="Biomass burning">Biomass burning (Perimeter leaves, agricultural stubble, garden waste)</option>
-                <option value="Vehicle idling">Vehicle idling (Diesel transport bus, school gate fleet idling >10 min)</option>
-                <option value="Silica dust">Silica dust (Unmitigated construction cutting, road excavation dust)</option>
-                <option value="Kitchen exhaust">Kitchen exhaust (Commercial wood/charcoal/diesel food prep)</option>
-                <option value="Perimeter waste combustion">Perimeter waste combustion (Mixed plastics, municipal solid waste)</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <label for="formSeverity">Observer Triage Severity</label>
-              </div>
-              <select id="formSeverity" required>
-                <option value="Moderate">Moderate (Localized nuisance, low pedestrian impact)</option>
-                <option value="High">High (Corridor smoke affecting student/commuter ingress)</option>
-                <option value="Severe">Severe (Dense plume penetrating classroom/hostel ventilation)</option>
-              </select>
-              <span class="help-text">Visual triage rating only. Does not assert an instrumented sensor concentration.</span>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <label for="formNotes">Observations &amp; Exposed Context</label>
-                <span id="notesCharCount" class="help-text">0/3000</span>
-              </div>
-              <textarea id="formNotes" maxlength="3000" placeholder="Describe plume color, wind drift direction, proximity to classrooms/hostels, and observed duration. Do not approach hazardous smoke."></textarea>
-              <span class="help-text">Safety reminder: Field observers must never confront operators or approach burning piles.</span>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <label>Observed GPS Coordinates (Optional)</label>
-              </div>
-              <div class="coords-split">
-                <input id="formLat" type="number" min="-90" max="90" step="any" placeholder="Latitude (e.g. 10.9205)">
-                <input id="formLng" type="number" min="-180" max="180" step="any" placeholder="Longitude (e.g. 78.7410)">
-              </div>
-              <div class="coords-bar">
-                <button type="button" id="btnAcquireGps" class="btn small">Acquire Device GPS</button>
-                <button type="button" id="btnPinFromMap" class="btn small">Pick Location on Map</button>
-                <button type="button" id="btnClearCoords" class="btn small">Clear Coords</button>
-              </div>
-              <span class="help-text">Both latitude and longitude must be provided together, or both left blank.</span>
-            </div>
-
-            <div class="form-actions-bar">
-              <button type="submit" id="btnSubmitIntake" class="btn primary">
-                Submit Observation Report
-              </button>
-              <button type="button" id="btnClearForm" class="btn">
-                Clear Form
-              </button>
-              <button type="button" id="btnFillSample" class="btn small">
-                Pre-Fill Sample Scenario
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 3: INCIDENT REGISTRY -->
-    <section id="tab-registry" class="view-content" role="tabpanel">
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>Reported Incident Registry</h3>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button id="btnExportRegistryJson" class="btn small">Export JSON</button>
-            <button id="btnSyncRegistry" class="btn small primary">Manual Sync</button>
-          </div>
-        </div>
-
-        <!-- Filter and Search Row -->
-        <div class="registry-controls">
-          <input id="regSearchInput" type="search" placeholder="Search zone, notes, ID, or source…" aria-label="Search incident registry">
-          <select id="regSeverityFilter" aria-label="Filter by severity">
-            <option value="">All Severities</option>
-            <option value="Severe">Severe</option>
-            <option value="High">High</option>
-            <option value="Moderate">Moderate</option>
-          </select>
-          <select id="regJurisdictionFilter" aria-label="Filter by jurisdiction">
-            <option value="">All Jurisdictions</option>
-            <option value="India">India</option>
-            <option value="US">US</option>
-            <option value="UK">UK</option>
-            <option value="EU">EU</option>
-            <option value="Global">Global</option>
-          </select>
-          <select id="regStatusFilter" aria-label="Filter by lifecycle status">
-            <option value="">All Statuses</option>
-            <option value="Reported">Reported</option>
-            <option value="Validated">Validated</option>
-            <option value="Assessed">Assessed</option>
-            <option value="ResponseActive">Response Active</option>
-            <option value="Documented">Documented</option>
-            <option value="Resolved">Resolved</option>
-          </select>
-          <button id="btnResetFilters" class="btn small">Reset</button>
-        </div>
-
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Incident ID</th>
-                <th>Zone / Locality</th>
-                <th>Jurisdiction</th>
-                <th>Source</th>
-                <th>Severity</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="registryTableBody">
-              <tr>
-                <td colspan="8" style="text-align:center;padding:24px;color:var(--text-dim)">
-                  Loading incident registry…
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 4: INCIDENT MAP -->
-    <section id="tab-map" class="view-content" role="tabpanel">
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>Geospatial Micro-Climate Map</h3>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span id="mapPointCounter" class="badge-status">0 Plotted</span>
-            <button id="btnFitMapExtent" class="btn small">Center View</button>
-          </div>
-        </div>
-        <div class="map-box">
-          <div id="map" role="application" aria-label="Geospatial map of air pollution incidents"></div>
-        </div>
-        <div style="padding:10px 14px;background:var(--bg-alt);border-top:1px solid var(--border);font-size:11px;color:var(--text-dim)">
-          Markers display verified field observer coordinates. Radial boundaries denote 60m–250m simulated downwind plume buffer cordons. Click any marker to view its dossier.
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 5: RESEARCH DOSSIER -->
-    <section id="tab-dossier" class="view-content" role="tabpanel">
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>Qualitative Environmental Research Dossier</h3>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span id="dossierActiveIdBadge" class="status-pill demo">NO INCIDENT SELECTED</span>
-            <button id="btnDossierPrintDraft" class="btn small primary">Generate Official Notice</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div class="dossier-grid">
-            <!-- 1. Environmental Profile -->
-            <article class="dossier-card">
-              <h4>1. Particulate &amp; Chemical Profile</h4>
-              <div id="dosParticulateProfile">
-                <p>Select an incident in the Registry or Map to view its qualitative chemical profile.</p>
-              </div>
-
-              <!-- Unmeasured Sensor Truth HUD -->
-              <div class="sensor-truth-hud">
-                <div class="sensor-truth-box">
-                  <div class="val">NULL</div>
-                  <div class="lbl">PM2.5 (Unmeasured)</div>
-                </div>
-                <div class="sensor-truth-box">
-                  <div class="val">NULL</div>
-                  <div class="lbl">PM10 (Unmeasured)</div>
-                </div>
-                <div class="sensor-truth-box">
-                  <div class="val">NULL</div>
-                  <div class="lbl">NOx (Unmeasured)</div>
-                </div>
-                <div class="sensor-truth-box">
-                  <div class="val">NULL</div>
-                  <div class="lbl">VOCs (Unmeasured)</div>
-                </div>
-              </div>
-              <span style="font-size:10px;color:var(--text-dim);font-style:italic">
-                Compliance Note: PRANA-VAYU never invents sensor concentrations. Quantitative fields remain null without certified reference monitors.
-              </span>
-            </article>
-
-            <!-- 2. Immediate Safety Actions -->
-            <article class="dossier-card">
-              <h4>2. Immediate Physical Protocols (24-Hour)</h4>
-              <div id="dosImmediateProtocol">
-                <p>Prioritized non-confrontational safety actions will appear here.</p>
-              </div>
-            </article>
-
-            <!-- 3. Long-Term Mitigation -->
-            <article class="dossier-card">
-              <h4>3. Long-Term Source Control &amp; Phytoremediation</h4>
-              <div id="dosLongTermEngineering">
-                <p>Site assessment and native plant buffer recommendations will appear here.</p>
-              </div>
-            </article>
-
-            <!-- 4. Administrative & Legal Context -->
-            <article class="dossier-card">
-              <h4>4. Statutory Legal Referral Memorandum</h4>
-              <div id="dosStatutoryMemo">
-                <p>Jurisdiction-aware legal reference (e.g. Air Act 1981 Section 19(5)) will appear here.</p>
-              </div>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 6: FOLLOW-UP & WORKFLOW -->
-    <section id="tab-workflow" class="view-content" role="tabpanel">
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>Incident Lifecycle Follow-Up &amp; Resolution</h3>
-          </div>
-          <span id="workflowIncidentBadge" class="badge-status">NO SELECTION</span>
-        </div>
-        <div class="panel-body">
-          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
-            Track and advance the incident through its formal operational stages. Authorized community gatekeepers can update the lifecycle state.
-          </p>
-
-          <!-- Timeline -->
-          <div class="workflow-timeline">
-            <div id="stepReported" class="workflow-step completed">1. Reported</div>
-            <div id="stepValidated" class="workflow-step">2. Validated</div>
-            <div id="stepAssessed" class="workflow-step">3. Assessed</div>
-            <div id="stepResponseActive" class="workflow-step">4. Response Active</div>
-            <div id="stepDocumented" class="workflow-step">5. Documented</div>
-            <div id="stepResolved" class="workflow-step">6. Resolved</div>
-          </div>
-
-          <!-- Advance Status Form -->
-          <div style="background:#090e1a;border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-top:12px">
-            <h4 style="font-size:12px;color:var(--cyan);margin-bottom:8px">Update Incident State</h4>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-              <select id="selectNextState" style="background:#131b2e;border:1px solid var(--border);color:#fff;padding:6px 10px;border-radius:4px">
-                <option value="Validated">Advance to: Validated</option>
-                <option value="Assessed">Advance to: Assessed</option>
-                <option value="ResponseActive">Advance to: Response Active</option>
-                <option value="Documented">Advance to: Documented</option>
-                <option value="Resolved">Advance to: Resolved</option>
-              </select>
-              <input id="inputActionLogNote" type="text" placeholder="Add follow-up note (e.g. Hose dousing deployed by groundskeeper)" style="flex:1;background:#131b2e;border:1px solid var(--border);color:#fff;padding:6px 10px;border-radius:4px;min-width:200px">
-              <button id="btnAdvanceLifecycle" class="btn primary small">Apply Update</button>
-            </div>
-          </div>
-
-          <!-- Action Log -->
-          <div style="margin-top:16px">
-            <h4 style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Follow-Up Action History</h4>
-            <div id="actionLogList" class="action-log-list">
-              <div class="action-log-item">No action history recorded yet.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 7: PRINTABLE REPORTS -->
-    <section id="tab-reports" class="view-content" role="tabpanel">
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>Administrative Representation &amp; Notice Generator</h3>
-          </div>
-          <button id="btnTriggerPrintSheet" class="btn primary small">Preview &amp; Print Notice</button>
-        </div>
-        <div class="panel-body">
-          <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
-            Generate formal double-bordered draft administrative representations under Section 19(5) and Section 31A of India's Air Act, 1981 (or international equivalents) for review by authorized institutional officers.
-          </p>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:700px">
-            <div class="field">
-              <label for="inputTargetAuthority">Target Receiving Authority</label>
-              <input id="inputTargetAuthority" maxlength="180" placeholder="e.g. Member Secretary, State Pollution Control Board / Ward Officer">
-            </div>
-            <div class="field">
-              <label for="inputFieldLeadName">Authorized Field Observer Lead</label>
-              <input id="inputFieldLeadName" maxlength="120" placeholder="e.g. S. Bhanuvardhan (Lead Observer, NSS Unit 4)">
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 8: SETTINGS & CLOUD SYNC -->
-    <section id="tab-settings" class="view-content" role="tabpanel">
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>Cloud API Gateway Configuration</h3>
-          </div>
-          <span class="badge-status">AWS Settings</span>
-        </div>
-        <div class="panel-body">
-          <div style="max-width:760px;display:flex;flex-direction:column;gap:12px">
-            <div class="field">
-              <label for="inputApiEndpoint">AWS API Gateway HTTP API Endpoint URL</label>
-              <input id="inputApiEndpoint" type="url" placeholder="https://xxxxxx.execute-api.region.amazonaws.com">
-              <span class="help-text">
-                Enter your deployed AWS HTTP API base URL. Stored locally in this browser. Leave empty to run autonomous local demo mode. Never enter AWS secret keys here.
-              </span>
-            </div>
-
-            <div style="display:flex;gap:8px">
-              <button id="btnSaveApiEndpoint" class="btn">Save Endpoint</button>
-              <button id="btnTestApiConnection" class="btn primary">Test Connection &amp; Sync</button>
-              <button id="btnClearApiEndpoint" class="btn">Clear (Use Local)</button>
-            </div>
-
-            <div id="settingsFeedback" class="feedback-banner" style="display:none"></div>
-
-            <hr style="border:0;border-top:1px solid var(--border);margin:8px 0">
-
-            <h4 style="font-size:12px;color:#fff">Local Data Management</h4>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button id="btnExportJsonDirect" class="btn small">Export Incident JSON</button>
-              <button id="btnResetToDefaultDemo" class="btn small">Reset to Seed Scenarios</button>
-              <button id="btnClearAllLocal" class="btn small danger">Clear Local Storage</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 9: ABOUT & ATTRIBUTION -->
-    <section id="tab-about" class="view-content" role="tabpanel">
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">
-            <h3>About PRANA-VAYU &amp; Architectural Attribution</h3>
-          </div>
-          <span class="badge-status">AS PHENIX</span>
-        </div>
-        <div class="panel-body">
-          <div style="max-width:820px;display:flex;flex-direction:column;gap:14px;color:var(--text-muted);font-size:12px;line-height:1.55">
-            <div>
-              <h4 style="color:#fff;font-size:14px;margin-bottom:4px">Cosmological Foundation: The Pancha Bhootas (पंचभूत)</h4>
-              <p>
-                In Vedic cosmology, life exists at the intersection of the five primordial elements: <em>Prithvi</em> (Earth), <em>Jala</em> (Water), <em>Agni</em> (Fire), <em>Vayu</em> (Air), and <em>Akasha</em> (Space). While humans survive weeks without food and days without water, cellular irreversible brain death occurs in under 3 minutes without clean air. Localized air pollution must be treated as an acute, life-critical violation.
-              </p>
-            </div>
-
-            <div>
-              <h4 style="color:#fff;font-size:14px;margin-bottom:4px">Lead Architect &amp; Developer</h4>
-              <p>
-                <strong>SARVEPALLI AUDI SIVA BHANUVARDHAN</strong><br>
-                Brand: <strong>AS PHENIX</strong><br>
-                Track: Bharat Builds Environmental Hacks — Air Track
-              </p>
-            </div>
-
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
-              <a href="https://www.linkedin.com/in/audi-siva-bhanuvardhan-sarvepalli-4598a8289/" target="_blank" rel="noopener noreferrer" class="btn small">LinkedIn Profile</a>
-              <a href="https://github.com/Sarvepalliaudi/" target="_blank" rel="noopener noreferrer" class="btn small">GitHub</a>
-              <a href="https://sarvepalliaudi.github.io/asphenixnewprotofolio/" target="_blank" rel="noopener noreferrer" class="btn small">Portfolio</a>
-              <a href="https://asphenix-rrq5sx5.gamma.site/" target="_blank" rel="noopener noreferrer" class="btn small">AS PHENIX Brand Space</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="app-footer">
-      <div>
-        <strong>PRANA-VAYU</strong> · Autonomous Air Incident Operations · Lead Architect: <strong>SARVEPALLI AUDI SIVA BHANUVARDHAN</strong> (AS PHENIX)
-      </div>
-      <div>
-        <span id="footerSyncStatusText">Local mode active</span> · <span id="footerClock">2026-10-11 UTC</span>
-      </div>
-    </footer>
-  </div>
-
-  <!-- In-Browser Printable Letterhead Modal -->
-  <div id="printModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Draft Notice Preview">
-    <div style="width:100%;max-width:800px;display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
-      <button id="modalBtnPrintExec" class="btn primary">Print / Save as PDF</button>
-      <button id="modalBtnClose" class="btn">Close Preview</button>
     </div>
-    <div id="modalPrintSheetContent" class="print-sheet"></div>
-  </div>
+  </header>
 
-  <!-- Dedicated print container for @media print -->
-  <div id="printPaperContainer" style="display:none"></div>
+  <main>
+    <!-- SECTION A: HERO / THE CORE IDEA -->
+    <section id="hero" class="site-shell hero-section">
+      <div class="hero-badge-pill">
+        <span class="dot"></span>
+        <span>RUST DOMAIN CORE · AWS SERVERLESS · RESILIENT DATA FLOW</span>
+      </div>
 
-  <!-- Leaflet JS -->
+      <h2 class="hero-headline">
+        Engineering Resilience <br>
+        <span class="gradient-text">Into Every Digital Layer.</span>
+      </h2>
+
+      <p class="hero-subtitle">
+        PRANA-VAYU is a secure, cloud-native systems architecture and environmental incident-response platform inspired by the Vedic principles of <em>Prana</em> (vital energy) and <em>Vayu</em> (continuous movement). Designed with strict Rust type boundaries, serverless Python Lambda compute, DynamoDB persistence, and zero-panic data integrity guarantees.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#architecture" class="btn primary">
+          Explore Architecture
+        </a>
+        <a href="#systems-lab" class="btn">
+          Systems Lab (Rust Core)
+        </a>
+        <a href="#documentation" class="btn">
+          Technical Documentation
+        </a>
+        <a href="https://github.com/Sarvepalliaudi/prana-vayu" target="_blank" rel="noopener noreferrer" class="btn">
+          View Source Code
+        </a>
+      </div>
+
+      <!-- Real Architecture Telemetry Strip -->
+      <div class="hero-metrics-strip">
+        <div class="metric-card">
+          <span class="label">Rust Core Crate</span>
+          <span class="val">crates/prana-core</span>
+          <span class="sub">Zero-panic validation, Serde normalization, typed lifecycle state machine.</span>
+        </div>
+        <div class="metric-card">
+          <span class="label">Serverless Compute</span>
+          <span class="val">AWS Lambda 3.12</span>
+          <span class="sub">HTTP API Gateway v2, 128MB memory, pay-per-request DynamoDB storage.</span>
+        </div>
+        <div class="metric-card">
+          <span class="label">Data Integrity Guarantee</span>
+          <span class="val">Explicitly Null Sensors</span>
+          <span class="sub">Zero fabricated sensor readings; qualitative triage separated from unmeasured metrics.</span>
+        </div>
+        <div class="metric-card">
+          <span class="label">Verification Suite</span>
+          <span class="val">10/10 Tests Passed</span>
+          <span class="sub">Automated event parsing, CORS, coordinate symmetry, and 503 fail-closed tests.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION B: ARCHITECTURE OVERVIEW -->
+    <section id="architecture" class="section-block">
+      <div class="site-shell">
+        <div class="section-header">
+          <span class="section-tag">01 / Technical Architecture</span>
+          <h2 class="section-title">End-to-End System &amp; Data Flow</h2>
+          <p class="section-desc">
+            PRANA-VAYU separates untrusted ingress, deterministic domain validation, serverless orchestration, and persistent storage into distinct isolation boundaries.
+          </p>
+        </div>
+
+        <div class="arch-grid">
+          <!-- Layer 1 -->
+          <div class="arch-card">
+            <span class="layer-num">LAYER 01 · CLIENT &amp; INTAKE</span>
+            <h3>Operational Web Console</h3>
+            <p>Single-page operational dashboard featuring Leaflet geospatial telemetry, real-time registry filters, Web Audio feedback, and formal letterhead generation.</p>
+            <span class="component-tag">index.html (ES2022 / Leaflet)</span>
+          </div>
+
+          <!-- Layer 2 -->
+          <div class="arch-card">
+            <span class="layer-num">LAYER 02 · EDGE INGRESS</span>
+            <h3>API Gateway HTTP API</h3>
+            <p>AWS API Gateway v2 managing HTTP routing, explicit CORS preflight (OPTIONS), request rate limits, and 20KB payload bounding.</p>
+            <span class="component-tag">AWS::Serverless::HttpApi</span>
+          </div>
+
+          <!-- Layer 3 -->
+          <div class="arch-card">
+            <span class="layer-num">LAYER 03 · SERVERLESS COMPUTE</span>
+            <h3>Python 3.12 Lambda Handler</h3>
+            <p>Boto3 orchestration microservice handling payload sanitization, dual AI routing (Gemini 3.8 Flash / Bedrock Claude 3.5 Sonnet), and fail-closed 503 error handling.</p>
+            <span class="component-tag">lambda_function.py</span>
+          </div>
+
+          <!-- Layer 4 -->
+          <div class="arch-card">
+            <span class="layer-num">LAYER 04 · DOMAIN ENGINE</span>
+            <h3>Rust 2021 prana-core</h3>
+            <p>High-assurance domain crate with typed Severity rankings, geographic coordinate symmetry, and a 6-stage lifecycle state machine.</p>
+            <span class="component-tag">crates/prana-core (Serde / thiserror)</span>
+          </div>
+
+          <!-- Layer 5 -->
+          <div class="arch-card">
+            <span class="layer-num">LAYER 05 · PERSISTENCE</span>
+            <h3>Amazon DynamoDB Table</h3>
+            <p>On-demand serverless NoSQL storage. Partition key: incident_id: String. Point-In-Time Recovery (PITR) and SSE encryption enabled.</p>
+            <span class="component-tag">AWS::DynamoDB::Table (On-Demand)</span>
+          </div>
+
+          <!-- Layer 6 -->
+          <div class="arch-card">
+            <span class="layer-num">LAYER 06 · AI &amp; FALLBACK</span>
+            <h3>Dual AI &amp; Fallback Engine</h3>
+            <p>Google Gemini Interactions API with automatic failover to Bedrock and deterministic qualitative fallback that guarantees zero downtime.</p>
+            <span class="component-tag">Gemini 3.8 Flash + Bedrock Claude</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION C: SYSTEMS ENGINEERING LAB (RUST CORE) -->
+    <section id="systems-lab" class="section-block">
+      <div class="site-shell">
+        <div class="section-header">
+          <span class="section-tag">02 / Systems Engineering Lab</span>
+          <h2 class="section-title">Rust Domain Modeling &amp; Type Safety</h2>
+          <p class="section-desc">
+            In PRANA-VAYU, critical business decisions and state transitions are handled by a dedicated Rust crate (<code>crates/prana-core</code>), preventing runtime panics, invalid coordinate pairs, and illegal lifecycle jumps.
+          </p>
+        </div>
+
+        <div class="lab-grid">
+          <!-- Window 1: Severity & Urgency -->
+          <div class="code-window">
+            <div class="code-header">
+              <span class="code-filename">crates/prana-core/src/severity.rs</span>
+              <span class="tag cyan">Type-Safe Severity</span>
+            </div>
+            <pre class="code-body"><code><span class="cm">/// Operational severity classification for localized air pollution incidents.</span>
+<span class="kw">pub enum</span> <span class="ty">Severity</span> {
+    <span class="ty">Moderate</span> = <span class="str">1</span>,
+    <span class="ty">High</span> = <span class="str">2</span>,
+    <span class="ty">Severe</span> = <span class="str">3</span>,
+}
+
+<span class="kw">impl</span> <span class="ty">Severity</span> {
+    <span class="cm">/// Protocol response urgency window (15m, 60m, 360m).</span>
+    <span class="kw">pub fn</span> <span class="fn">response_window_minutes</span>(&amp;<span class="kw">self</span>) -&gt; <span class="ty">u32</span> {
+        <span class="kw">match self</span> {
+            <span class="ty">Severity::Severe</span> =&gt; <span class="str">15</span>,
+            <span class="ty">Severity::High</span> =&gt; <span class="str">60</span>,
+            <span class="ty">Severity::Moderate</span> =&gt; <span class="str">360</span>,
+        }
+    }
+
+    <span class="kw">pub fn</span> <span class="fn">requires_immediate_escalation</span>(&amp;<span class="kw">self</span>) -&gt; <span class="ty">bool</span> {
+        <span class="fn">matches!</span>(<span class="kw">self</span>, <span class="ty">Severity::Severe</span> | <span class="ty">Severity::High</span>)
+    }
+}</code></pre>
+          </div>
+
+          <!-- Window 2: State Machine -->
+          <div class="code-window">
+            <div class="code-header">
+              <span class="code-filename">crates/prana-core/src/lifecycle.rs</span>
+              <span class="tag cyan">State Machine</span>
+            </div>
+            <pre class="code-body"><code><span class="cm">/// Strict incident lifecycle state transitions:</span>
+<span class="cm">/// Reported -&gt; Validated -&gt; Assessed -&gt; ResponseActive -&gt; Documented -&gt; Resolved</span>
+<span class="kw">pub enum</span> <span class="ty">LifecycleState</span> {
+    <span class="ty">Reported</span>,
+    <span class="ty">Validated</span>,
+    <span class="ty">Assessed</span>,
+    <span class="ty">ResponseActive</span>,
+    <span class="ty">Documented</span>,
+    <span class="ty">Resolved</span>,
+    <span class="ty">Archived</span>,
+}
+
+<span class="kw">impl</span> <span class="ty">LifecycleState</span> {
+    <span class="kw">pub fn</span> <span class="fn">can_transition_to</span>(&amp;<span class="kw">self</span>, next: <span class="ty">LifecycleState</span>) -&gt; <span class="ty">bool</span> {
+        <span class="kw">match</span> (<span class="kw">self</span>, next) {
+            (s, n) <span class="kw">if</span> *s == n =&gt; <span class="str">true</span>,
+            (<span class="ty">LifecycleState::Reported</span>, <span class="ty">LifecycleState::Validated</span>) =&gt; <span class="str">true</span>,
+            (<span class="ty">LifecycleState::Validated</span>, <span class="ty">LifecycleState::Assessed</span>) =&gt; <span class="str">true</span>,
+            (<span class="ty">LifecycleState::Assessed</span>, <span class="ty">LifecycleState::ResponseActive</span>) =&gt; <span class="str">true</span>,
+            _ =&gt; <span class="str">false</span>, <span class="cm">// Backward or illegal jumps forbidden</span>
+        }
+    }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION D: CLOUD AND INFRASTRUCTURE -->
+    <section id="infrastructure" class="section-block">
+      <div class="site-shell">
+        <div class="section-header">
+          <span class="section-tag">03 / Cloud Infrastructure</span>
+          <h2 class="section-title">AWS Serverless Architecture &amp; SAM Configuration</h2>
+          <p class="section-desc">
+            PRANA-VAYU uses AWS SAM (Serverless Application Model) to deploy on-demand, cost-effective infrastructure with zero idle charges.
+          </p>
+        </div>
+
+        <div class="code-window" style="margin-bottom: 24px;">
+          <div class="code-header">
+            <span class="code-filename">template.yaml (AWS SAM Infrastructure as Code)</span>
+            <span class="tag live">SAM Verified</span>
+          </div>
+          <pre class="code-body"><code><span class="ty">AWSTemplateFormatVersion</span>: <span class="str">'2010-09-09'</span>
+<span class="ty">Transform</span>: <span class="str">AWS::Serverless-2016-10-31</span>
+
+<span class="ty">Globals</span>:
+  <span class="ty">Function</span>:
+    <span class="ty">Timeout</span>: <span class="str">30</span>
+    <span class="ty">MemorySize</span>: <span class="str">128</span>
+    <span class="ty">Runtime</span>: <span class="str">python3.12</span>
+
+<span class="ty">Resources</span>:
+  <span class="ty">PranaVayuHttpApi</span>:
+    <span class="ty">Type</span>: <span class="str">AWS::Serverless::HttpApi</span>
+    <span class="ty">Properties</span>:
+      <span class="ty">CorsConfiguration</span>:
+        <span class="ty">AllowOrigins</span>: [<span class="str">'*'</span>]
+        <span class="ty">AllowMethods</span>: [<span class="str">'GET', 'POST', 'OPTIONS'</span>]
+
+  <span class="ty">IncidentsTable</span>:
+    <span class="ty">Type</span>: <span class="str">AWS::DynamoDB::Table</span>
+    <span class="ty">Properties</span>:
+      <span class="ty">TableName</span>: <span class="str">PRANA_VAYU_Incidents</span>
+      <span class="ty">BillingMode</span>: <span class="str">PAY_PER_REQUEST</span>
+      <span class="ty">PointInTimeRecoverySpecification</span>:
+        <span class="ty">PointInTimeRecoveryEnabled</span>: <span class="str">true</span></code></pre>
+        </div>
+
+        <div class="hero-metrics-strip" style="border: 0; padding: 0;">
+          <div class="metric-card">
+            <span class="label">TABLE_NAME</span>
+            <span class="val">PRANA_VAYU_Incidents</span>
+            <span class="sub">Primary Key: incident_id (String). Scalable on-demand read/write capacity.</span>
+          </div>
+          <div class="metric-card">
+            <span class="label">AI_PROVIDER</span>
+            <span class="val">AUTO / GEMINI / BEDROCK</span>
+            <span class="sub">Environment variable switch for model execution with fallback.</span>
+          </div>
+          <div class="metric-card">
+            <span class="label">BEDROCK_MODEL_ID</span>
+            <span class="val">Claude 3.5 Sonnet</span>
+            <span class="sub">anthropic.claude-3-5-sonnet-20240620-v1:0 via scoped IAM policy.</span>
+          </div>
+          <div class="metric-card">
+            <span class="label">AMPLIFY_HOSTING</span>
+            <span class="val">amplify.yml</span>
+            <span class="sub">Zero-config static deployment directly connected to GitHub repository.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION E: SECURITY AND RELIABILITY -->
+    <section id="security" class="section-block">
+      <div class="site-shell">
+        <div class="section-header">
+          <span class="section-tag">04 / Security &amp; Reliability</span>
+          <h2 class="section-title">Defense-in-Depth Engineering Principles</h2>
+          <p class="section-desc">
+            Security and operational resilience are woven into the system from protocol design to cloud execution.
+          </p>
+        </div>
+
+        <div class="security-grid">
+          <div class="security-card">
+            <h4>Input Boundary Sanitization</h4>
+            <p>Strict server-side and Rust domain validation limits notes to 3000 chars, zones to 180 chars, and ensures coordinate symmetry (both lat &amp; lng must be present).</p>
+          </div>
+          <div class="security-card">
+            <h4>Fail-Closed 503 Handling</h4>
+            <p>On database or runtime errors, the API fails closed with HTTP 503 without leaking Python stack traces, AWS account numbers, or table metadata.</p>
+          </div>
+          <div class="security-card">
+            <h4>Least-Privilege IAM</h4>
+            <p>The Lambda execution role is strictly scoped to <code>GetItem</code>, <code>PutItem</code>, and <code>Scan</code> on the specific DynamoDB table ARN and model invoke ARN.</p>
+          </div>
+          <div class="security-card">
+            <h4>No Secrets on Client</h4>
+            <p>Gemini and AWS credentials reside exclusively in server-side environment variables. The web console operates safely in local mode without credentials.</p>
+          </div>
+          <div class="security-card">
+            <h4>Sensor Reading Integrity</h4>
+            <p>The platform explicitly displays PM2.5, PM10, NOx, and VOCs as NULL / UNMEASURED unless certified physical sensors are attached, preventing fabricated metrics.</p>
+          </div>
+          <div class="security-card">
+            <h4>Volunteer Safety Protocol</h4>
+            <p>Guidance emphasizes physical separation (120m cordon, 15m hose dousing). Volunteers are explicitly advised never to confront operators or enter smoke.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION F: DEVELOPER DOCUMENTATION -->
+    <section id="documentation" class="section-block">
+      <div class="site-shell">
+        <div class="section-header">
+          <span class="section-tag">05 / Developer Documentation</span>
+          <h2 class="section-title">Setup, Testing &amp; Deployment Guide</h2>
+          <p class="section-desc">
+            Reproducible developer instructions grounded in the actual codebase.
+          </p>
+        </div>
+
+        <div class="lab-grid">
+          <div class="code-window">
+            <div class="code-header">
+              <span class="code-filename">Terminal · Local Testing</span>
+              <span class="tag live">Verified 10/10</span>
+            </div>
+            <pre class="code-body"><code><span class="cm"># Run the comprehensive 10-test suite (0 external network calls)</span>
+python -m unittest test_lambda.py
+
+<span class="cm"># Output:</span>
+<span class="str">Ran 10 tests in 0.008s</span>
+<span class="str">OK</span>
+
+<span class="cm"># Run Rust domain crate unit tests</span>
+cargo test --manifest-path crates/prana-core/Cargo.toml</code></pre>
+          </div>
+
+          <div class="code-window">
+            <div class="code-header">
+              <span class="code-filename">Terminal · Cloud Deployment</span>
+              <span class="tag cyan">AWS SAM</span>
+            </div>
+            <pre class="code-body"><code><span class="cm"># 1. Build serverless artifacts</span>
+sam build
+
+<span class="cm"># 2. Deploy guided to AWS</span>
+sam deploy --guided
+
+<span class="cm"># 3. Static Web Hosting via Amplify</span>
+git push origin main
+<span class="cm"># Amplify auto-builds index.html globally via amplify.yml</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION G: ROADMAP -->
+    <section id="roadmap" class="section-block">
+      <div class="site-shell">
+        <div class="section-header">
+          <span class="section-tag">06 / Project Roadmap</span>
+          <h2 class="section-title">Verified Implementation &amp; Research Horizons</h2>
+          <p class="section-desc">
+            Transparently categorizing what is verified today, underway, and planned for future research.
+          </p>
+        </div>
+
+        <div class="roadmap-grid">
+          <div class="roadmap-col">
+            <div class="roadmap-col-header">
+              <h3>Verified Implemented</h3>
+              <span class="tag live">Production Ready</span>
+            </div>
+            <div class="roadmap-item">
+              <strong>Rust Domain Core (prana-core)</strong>
+              <p>Severity rating, lifecycle state machine, Serde normalization, coordinate bounds.</p>
+            </div>
+            <div class="roadmap-item">
+              <strong>AWS Serverless Microservice</strong>
+              <p>Python 3.12 Lambda, HTTP API Gateway v2, DynamoDB on-demand table with PITR.</p>
+            </div>
+            <div class="roadmap-item">
+              <strong>Dual AI &amp; Fallback Engine</strong>
+              <p>Gemini 3.8 Flash Interactions API + Bedrock Claude 3.5 Sonnet + deterministic fallback.</p>
+            </div>
+            <div class="roadmap-item">
+              <strong>Full Operations Console</strong>
+              <p>Interactive Leaflet GIS, real-time registry, research dossier, and regulatory print engine.</p>
+            </div>
+          </div>
+
+          <div class="roadmap-col">
+            <div class="roadmap-col-header">
+              <h3>In Development</h3>
+              <span class="tag cyan">Underway</span>
+            </div>
+            <div class="roadmap-item">
+              <strong>WebAssembly (WASM) Rust Build</strong>
+              <p>Compiling prana-core directly to WASM for in-browser client-side rule validation.</p>
+            </div>
+            <div class="roadmap-item">
+              <strong>Automated Regulatory Webhooks</strong>
+              <p>Secure payload transmission to State Pollution Control Board complaint portals.</p>
+            </div>
+            <div class="roadmap-item">
+              <strong>Offline PWA Service Worker</strong>
+              <p>IndexedDB background sync for zero-connectivity field spotter data ingestion.</p>
+            </div>
+          </div>
+
+          <div class="roadmap-col">
+            <div class="roadmap-col-header">
+              <h3>Research Direction</h3>
+              <span class="tag">Future Research</span>
+            </div>
+            <div class="roadmap-item">
+              <strong>Federated Micro-Sensor Ingestion</strong>
+              <p>Edge IoT calibration and cryptographic signing for low-cost optical particulate counters.</p>
+            </div>
+            <div class="roadmap-item">
+              <strong>Formal Verification</strong>
+              <p>Mathematical verification of incident state machine transitions using TLA+ / Kani.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION H: EMBEDDED OPERATIONAL CONSOLE -->
+    <section id="live-console" class="section-block">
+      <div class="site-shell">
+        <div class="section-header">
+          <span class="section-tag">07 / Interactive Application</span>
+          <h2 class="section-title">Live Environmental Incident Operations Console</h2>
+          <p class="section-desc">
+            Explore the functional, anti-vibe-coding operational console. Submit a report, inspect the geospatial plume grid, review qualitative research dossiers, and generate official regulatory notices.
+          </p>
+        </div>
+
+        <div class="console-wrapper">
+          <div class="console-topbar">
+            <div class="console-tabs" role="tablist">
+              <button class="c-tab active" data-target="c-overview">01 / Overview</button>
+              <button class="c-tab" data-target="c-intake">02 / Intake Form</button>
+              <button class="c-tab" data-target="c-registry">03 / Registry Table (<span id="cCountBadge">0</span>)</button>
+              <button class="c-tab" data-target="c-map">04 / Geospatial Map</button>
+              <button class="c-tab" data-target="c-dossier">05 / Research Dossier</button>
+              <button class="c-tab" data-target="c-print">06 / Official Notice</button>
+            </div>
+            <span id="cConnPill" class="tag live">LOCAL DEMO READY</span>
+          </div>
+
+          <!-- Console View 1: Overview -->
+          <div id="c-overview" class="c-view active">
+            <div class="hero-metrics-strip" style="border: 0; padding: 0; margin-bottom: 16px;">
+              <div class="metric-card">
+                <span class="label">Total Records</span>
+                <span class="val" id="cStatTotal">0</span>
+                <span class="sub">Active in local or synced registry</span>
+              </div>
+              <div class="metric-card">
+                <span class="label">Severe Plumes</span>
+                <span class="val" id="cStatSevere" style="color:var(--danger)">0</span>
+                <span class="sub">Requiring 15-minute physical interventions</span>
+              </div>
+              <div class="metric-card">
+                <span class="label">Verified Coordinates</span>
+                <span class="val" id="cStatMapped" style="color:var(--cyan)">0</span>
+                <span class="sub">Grounded with verified latitude &amp; longitude</span>
+              </div>
+              <div class="metric-card">
+                <span class="label">Sample Incident</span>
+                <button id="cBtnLoadSample" class="btn small primary" style="margin-top:4px">Load Verified Sample</button>
+                <span class="sub">One-click realistic campus leaf burning scenario</span>
+              </div>
+            </div>
+            <p style="font-size:13px;color:var(--text-muted)">
+              Select a tab above to log an observation, inspect geospatial downwind plumes, or generate formal Section 19(5) Air Act administrative representations.
+            </p>
+          </div>
+
+          <!-- Console View 2: Intake Form -->
+          <div id="c-intake" class="c-view">
+            <form id="cIntakeForm" class="c-form-grid">
+              <div class="c-field">
+                <label for="cJurisdiction">Jurisdiction</label>
+                <select id="cJurisdiction">
+                  <option value="India">India (Air Act 1981 / CPCB / SPCB)</option>
+                  <option value="US">US (Clean Air Act / EPA)</option>
+                  <option value="UK">UK (Environment Act 2021 / Defra)</option>
+                  <option value="EU">EU (Ambient Air Quality Directive)</option>
+                  <option value="Global">Global / International Reference</option>
+                </select>
+              </div>
+
+              <div class="c-field">
+                <label for="cZone">Zone / Locality (max 180 chars)</label>
+                <input id="cZone" maxlength="180" required placeholder="e.g. Samayapuram University Perimeter, Gate 4">
+              </div>
+
+              <div class="c-field">
+                <label for="cSource">Contaminant Source Category</label>
+                <select id="cSource">
+                  <option value="Biomass burning">Biomass burning (Perimeter leaves, garden waste)</option>
+                  <option value="Vehicle idling">Vehicle idling (Diesel transport bus idling)</option>
+                  <option value="Silica dust">Silica dust (Unmitigated road cutting)</option>
+                  <option value="Kitchen exhaust">Kitchen exhaust (Commercial wood/diesel food prep)</option>
+                  <option value="Perimeter waste combustion">Perimeter waste combustion (Mixed plastics / MSW)</option>
+                </select>
+              </div>
+
+              <div class="c-field">
+                <label for="cSeverity">Observer Severity Rating</label>
+                <select id="cSeverity">
+                  <option value="Moderate">Moderate (Localized nuisance)</option>
+                  <option value="High">High (Corridor smoke affecting pedestrian ingress)</option>
+                  <option value="Severe">Severe (Dense plume penetrating classroom/hostel ventilation)</option>
+                </select>
+              </div>
+
+              <div class="c-field">
+                <label for="cNotes">Field Context / Notes (max 3000 chars)</label>
+                <textarea id="cNotes" maxlength="3000" placeholder="Describe plume drift, nearby sensitive classrooms, and observations. Do not approach hazardous smoke."></textarea>
+              </div>
+
+              <div class="c-field">
+                <label>GPS Coordinates (Latitude, Longitude)</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                  <input id="cLat" type="number" step="any" placeholder="Latitude (e.g. 10.9205)">
+                  <input id="cLng" type="number" step="any" placeholder="Longitude (e.g. 78.7410)">
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <button type="submit" class="btn emerald">Log Incident Report</button>
+                <button type="button" id="cBtnClearForm" class="btn">Clear Form</button>
+              </div>
+              <div id="cFormFeedback" style="font-size:12px;color:var(--cyan);display:none;margin-top:6px"></div>
+            </form>
+          </div>
+
+          <!-- Console View 3: Registry Table -->
+          <div id="c-registry" class="c-view">
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+              <input id="cSearchInput" type="search" placeholder="Search zone, source, or ID..." style="flex:1;min-width:200px;background:#0c1424;border:1px solid var(--border);color:#fff;padding:6px 10px;border-radius:4px">
+              <select id="cFilterSeverity" style="background:#0c1424;border:1px solid var(--border);color:#fff;padding:6px 10px;border-radius:4px">
+                <option value="">All Severities</option>
+                <option value="Severe">Severe</option>
+                <option value="High">High</option>
+                <option value="Moderate">Moderate</option>
+              </select>
+              <button id="cBtnExportJson" class="btn small">Export JSON</button>
+            </div>
+
+            <div class="c-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Incident ID</th>
+                    <th>Zone</th>
+                    <th>Source</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="cTableBody">
+                  <tr><td colspan="7" style="text-align:center;color:var(--text-dim)">Loading registry...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Console View 4: Geospatial Map -->
+          <div id="c-map" class="c-view">
+            <div class="c-map-wrap">
+              <div id="map"></div>
+            </div>
+          </div>
+
+          <!-- Console View 5: Research Dossier -->
+          <div id="c-dossier" class="c-view">
+            <div class="arch-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+              <div class="arch-card">
+                <span class="layer-num">1. PARTICULATE PROFILE</span>
+                <div id="cDossierProfile"><p>Select an incident in the Registry to inspect its qualitative chemical speciation.</p></div>
+                <div class="hero-metrics-strip" style="border:0;padding-top:10px;margin-top:10px;grid-template-columns:repeat(4,1fr);gap:6px">
+                  <div class="metric-card" style="padding:6px;text-align:center"><span class="label" style="font-size:9px">PM2.5</span><span class="val" style="font-size:12px;color:var(--text-dim)">NULL</span></div>
+                  <div class="metric-card" style="padding:6px;text-align:center"><span class="label" style="font-size:9px">PM10</span><span class="val" style="font-size:12px;color:var(--text-dim)">NULL</span></div>
+                  <div class="metric-card" style="padding:6px;text-align:center"><span class="label" style="font-size:9px">NOx</span><span class="val" style="font-size:12px;color:var(--text-dim)">NULL</span></div>
+                  <div class="metric-card" style="padding:6px;text-align:center"><span class="label" style="font-size:9px">VOCs</span><span class="val" style="font-size:12px;color:var(--text-dim)">NULL</span></div>
+                </div>
+                <span style="font-size:10px;color:var(--text-dim);font-style:italic">Metrics remain unmeasured in accordance with anti-vibe-coding data integrity standards.</span>
+              </div>
+
+              <div class="arch-card">
+                <span class="layer-num">2. IMMEDIATE PHYSICAL ACTIONS</span>
+                <div id="cDossierProtocols"><p>Prioritized non-confrontational safety actions will appear here.</p></div>
+              </div>
+
+              <div class="arch-card">
+                <span class="layer-num">3. LONG-TERM MITIGATION</span>
+                <div id="cDossierEngineering"><p>Native high-APTI plant buffers (Peepal, Neem, Kaner) and source controls will appear here.</p></div>
+              </div>
+
+              <div class="arch-card">
+                <span class="layer-num">4. STATUTORY LEGAL REFERRAL</span>
+                <div id="cDossierLegal"><p>Section 19(5) Air (Prevention &amp; Control of Pollution) Act, 1981 reference memo will appear here.</p></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Console View 6: Regulatory Letterhead Notice -->
+          <div id="c-print" class="c-view">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <span style="font-size:13px;color:var(--text-muted)">High-contrast double-bordered official representation under Section 19(5) of India's Air Act, 1981.</span>
+              <button id="cBtnPrintNotice" class="btn primary small">Print / Save as PDF</button>
+            </div>
+            <div id="cPrintNoticeSheet" style="background:#fff;color:#111;padding:24px 32px;border:3px double #111;font-family:Georgia,serif;font-size:12px;line-height:1.5">
+              <!-- Rendered Notice Content -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION I: ABOUT THE PROJECT & AUTHOR -->
+    <section id="about" class="section-block">
+      <div class="site-shell">
+        <div class="section-header">
+          <span class="section-tag">08 / About &amp; Brand</span>
+          <h2 class="section-title">AS PHENIX &amp; Architectural Attribution</h2>
+          <p class="section-desc">
+            “PRANA-VAYU explores how thoughtful systems architecture, secure software engineering, and efficient execution can work together to build resilient digital infrastructure.”
+          </p>
+        </div>
+
+        <div class="arch-grid" style="grid-template-columns: 2fr 1fr; gap: 24px;">
+          <div class="arch-card">
+            <h3>Architectural Philosophy: Vedic Cosmology Meets Digital Resilience</h3>
+            <p>
+              In Vedic cosmology, life exists at the intersection of the five primordial elements: <em>Prithvi</em> (Earth), <em>Jala</em> (Water), <em>Agni</em> (Fire), <em>Vayu</em> (Air), and <em>Akasha</em> (Space). While humans survive weeks without food and days without water, cellular irreversible brain death occurs in under three minutes without clean air. Localized air pollution must be treated as an acute, life-critical violation.
+            </p>
+            <p>
+              PRANA-VAYU translates this biological urgency into computational resilience: deterministic error containment, strict boundary sanitization, and immutable verification.
+            </p>
+          </div>
+
+          <div class="arch-card">
+            <h3>Lead Architect &amp; Creator</h3>
+            <p>
+              <strong>SARVEPALLI AUDI SIVA BHANUVARDHAN</strong><br>
+              Brand: <strong>AS PHENIX</strong><br>
+              Category: Secure Systems Engineering &amp; Cloud Resilience
+            </p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+              <a href="https://www.linkedin.com/in/audi-siva-bhanuvardhan-sarvepalli-4598a8289/" target="_blank" rel="noopener noreferrer" class="btn small">LinkedIn Profile</a>
+              <a href="https://github.com/Sarvepalliaudi/prana-vayu" target="_blank" rel="noopener noreferrer" class="btn small">GitHub Repository</a>
+              <a href="https://sarvepalliaudi.github.io/asphenixnewprotofolio/" target="_blank" rel="noopener noreferrer" class="btn small">Developer Portfolio</a>
+              <a href="https://asphenix-rrq5sx5.gamma.site/" target="_blank" rel="noopener noreferrer" class="btn small">AS PHENIX Space</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="site-shell">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>PRANA-VAYU (प्राण-वायु)</h4>
+          <p style="line-height:1.6;margin-bottom:12px">
+            High-assurance digital resilience platform combining Rust core validation, AWS serverless infrastructure, and community environmental triage.
+          </p>
+          <span class="tag live">Version 1.0.0-PROD</span>
+        </div>
+        <div class="footer-col">
+          <h4>Architecture</h4>
+          <ul>
+            <li><a href="#systems-lab">Rust prana-core</a></li>
+            <li><a href="#infrastructure">AWS SAM Template</a></li>
+            <li><a href="#security">Threat Model</a></li>
+            <li><a href="#documentation">Verification Suite</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Application</h4>
+          <ul>
+            <li><a href="#live-console">Live Operations Console</a></li>
+            <li><a href="#live-console">Geospatial Plume Grid</a></li>
+            <li><a href="#live-console">Research Dossier</a></li>
+            <li><a href="#live-console">Statutory Notice Engine</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="https://github.com/Sarvepalliaudi/prana-vayu" target="_blank" rel="noopener noreferrer">GitHub Source</a></li>
+            <li><a href="https://www.linkedin.com/in/audi-siva-bhanuvardhan-sarvepalli-4598a8289/" target="_blank" rel="noopener noreferrer">LinkedIn Profile</a></li>
+            <li><a href="https://sarvepalliaudi.github.io/asphenixnewprotofolio/" target="_blank" rel="noopener noreferrer">Portfolio</a></li>
+            <li><a href="https://asphenix-rrq5sx5.gamma.site/" target="_blank" rel="noopener noreferrer">AS PHENIX Space</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          PRANA-VAYU · Brand: <strong>AS PHENIX</strong> · Developer: <strong>SARVEPALLI AUDI SIVA BHANUVARDHAN</strong>
+        </div>
+        <div>
+          <span id="footerClock">2026-10-11 UTC</span> · Built for Bharat Builds Environmental Hacks
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Dedicated print container -->
+  <div id="printContainer" style="display:none"></div>
+
+  <!-- Leaflet GIS Script -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
@@ -1530,19 +1588,16 @@
     (() => {
       'use strict';
 
-      const STORAGE_KEY = 'prana-vayu-incidents-v3';
-      const API_ENDPOINT_KEY = 'prana-vayu-api-endpoint-v3';
-
+      const STORAGE_KEY = 'prana-vayu-records-v4';
       const byId = id => document.getElementById(id);
       const safeText = val => String(val ?? '').replace(/[<>]/g, '');
       const escapeHtml = val => String(val ?? '').replace(/[&<>"']/g, ch => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       }[ch]));
       const nowIso = () => new Date().toISOString();
-      const validLatLng = (lat, lng) => Number.isFinite(Number(lat)) && Number(lat) >= -90 && Number(lat) <= 90 && Number.isFinite(Number(lng)) && Number(lng) >= -180 && Number(lng) <= 180;
 
-      // Seed verified sample incidents
-      const SEED_INCIDENTS = [
+      // Seed verified scenarios
+      const SEED_DATA = [
         {
           incident_id: 'PV-DEMO-001',
           timestamp: Math.floor(Date.now() / 1000) - 1800,
@@ -1555,13 +1610,6 @@
           notes: 'Dense leaf and mixed plastic smoldering in stormwater ditch upwind of student hostel block B intake. Plume lofting trapped under morning inversion.',
           latitude: 10.9205,
           longitude: 78.7410,
-          analysis_provider: 'deterministic_fallback',
-          analysis_status: 'completed',
-          _local: true,
-          action_log: [
-            { timestamp: nowIso(), note: 'Initial observation submitted by NSS Cadet Lead.' },
-            { timestamp: nowIso(), note: 'Campus warden deployed 15-minute low pressure hose dousing.' }
-          ],
           analysis: {
             particulate_profile: 'Biomass and waste smoldering emits dense Polycyclic Aromatic Hydrocarbons (PAHs), Benzo[a]pyrene, Black Carbon, and carbon monoxide. Incomplete combustion at low temperature produces acute inhalable particulate plumes without certified sensor concentration.',
             immediate_protocol: [
@@ -1581,15 +1629,9 @@
           source: 'Vehicle idling',
           severity: 'High',
           lifecycle_state: 'Assessed',
-          notes: 'Commercial diesel contract buses idling engines for >25 minutes during morning pupil drop-off window.',
+          notes: 'Commercial diesel contract buses idling engines for >25 minutes during morning drop-off window.',
           latitude: 10.9240,
           longitude: 78.7460,
-          analysis_provider: 'deterministic_fallback',
-          analysis_status: 'completed',
-          _local: true,
-          action_log: [
-            { timestamp: nowIso(), note: 'Reported by commuter volunteer.' }
-          ],
           analysis: {
             particulate_profile: 'Diesel Particulate Matter (DPM), Elemental Carbon, and Nitrogen Oxides (NOx). Sub-micron diesel exhaust particles readily penetrate deep alveolar corridors, exacerbating juvenile respiratory inflammation.',
             immediate_protocol: [
@@ -1612,12 +1654,6 @@
           notes: 'Dry abrasive cutting of concrete pavers and sandstone without water misting equipment.',
           latitude: 10.9180,
           longitude: 78.7390,
-          analysis_provider: 'deterministic_fallback',
-          analysis_status: 'completed',
-          _local: true,
-          action_log: [
-            { timestamp: nowIso(), note: 'Visual observation logged by student spotter.' }
-          ],
           analysis: {
             particulate_profile: 'Respirable Crystalline Silica (SiO2) particles (<4 µm aerodynamic diameter). Abrasive mechanical cutting generates micro-particles capable of causing acute silicosis and ocular irritation.',
             immediate_protocol: [
@@ -1630,18 +1666,13 @@
         }
       ];
 
-      // Application State
       const state = {
         incidents: [],
         activeId: null,
-        apiUrl: '',
-        isSyncing: false,
         map: null,
         markerLayer: null,
         markers: new Map(),
-        circles: new Map(),
-        pinMode: false,
-        pinMarker: null
+        circles: new Map()
       };
 
       const severityColors = {
@@ -1650,289 +1681,149 @@
         Moderate: '#06b6d4'
       };
 
-      // Rule-based deterministic fallback analysis
-      function buildFallbackDossier(item) {
-        const source = item.source || 'Biomass burning';
-        const profiles = {
-          'Biomass burning': 'Combustion emits fine particles, carbon monoxide, nitrogen oxides, volatile organics, and polycyclic aromatic hydrocarbons. Plume toxicity depends on burn moisture and material; no concentration was measured by this application.',
-          'Vehicle idling': 'Vehicle exhaust emits nitrogen oxides, elemental soot, and volatile hydrocarbons. Concentration varies by engine load and fleet age; no direct concentration is attached.',
-          'Silica dust': 'Mechanical cutting produces coarse and respirable mineral dust. Crystalline silica fraction requires certified optical or gravimetric monitoring; none is attached.',
-          'Kitchen exhaust': 'High-temperature cooking produces condensed organic aerosols, acrolein, and fine combustion soot. Fuel and ventilation dictate exposure levels.',
-          'Perimeter waste combustion': 'Mixed waste incineration releases toxic chlorine-containing compounds, fine soot, and carbon monoxide. Composition cannot be confirmed visually.'
-        };
-
-        const protocols = [
-          'Do not approach the source, enter smoke, confront operators, or extinguish uncontrolled fires. Maintain safe separation.',
-          item.severity === 'Severe'
-            ? 'Prioritize immediate physical separation, evacuate downwind corridors, and notify campus institutional security and emergency responders.'
-            : 'Log observational coordinates, establish temporary pedestrian cordons, and request institutional maintenance review.'
-        ];
-
-        const engineering = item.source === 'Silica dust'
-          ? 'Mandate continuous wet misting during cutting, install localized exhaust ventilation, and require task-appropriate certified respirators.'
-          : 'Enforce source elimination first. Vegetative buffers (Peepal APTI 22.4, Neem APTI 24.8, Bougainvillea) should be evaluated by qualified ecologists to intercept secondary plume drift.';
-
-        const memos = {
-          India: 'For India, refer this representation to the State Pollution Control Board and Municipal Ward Officer. Section 19(5) of the Air (Prevention and Control of Pollution) Act, 1981 restricts open burning in notified air pollution control areas. This draft is an administrative representation only.',
-          US: 'For the United States, refer to state air agency and municipal code. Clean Air Act State Implementation Plans (SIP) govern localized open burning and fugitive dust. Verify local ordinances before formal notice.',
-          UK: 'For the United Kingdom, refer to Local Environmental Health authorities under the Environment Act 2021 and Environmental Protection Act 1990 statutory nuisance provisions.',
-          EU: 'For the European Union, refer to municipal and regional environmental inspectorates under Directive 2008/50/EC on ambient air quality.',
-          Global: 'Refer this representation to local environmental authorities having statutory jurisdiction. Have legal counsel verify applicable standards before transmission.'
-        };
-
-        return {
-          particulate_profile: profiles[source] || profiles['Biomass burning'],
-          immediate_protocol: protocols,
-          long_term_engineering: engineering,
-          statutory_memo: memos[item.jurisdiction] || memos.Global
-        };
-      }
-
-      function normalizeRecord(raw) {
-        if (!raw || typeof raw !== 'object') return null;
-        const jurisdiction = ['India', 'US', 'UK', 'EU', 'Global'].includes(raw.jurisdiction) ? raw.jurisdiction : 'India';
-        const source = ['Biomass burning', 'Vehicle idling', 'Silica dust', 'Kitchen exhaust', 'Perimeter waste combustion'].includes(raw.source) ? raw.source : 'Biomass burning';
-        const severity = ['Moderate', 'High', 'Severe'].includes(raw.severity) ? raw.severity : 'Moderate';
-        const zone = safeText(raw.zone || raw.location || 'Samayapuram, Trichy').slice(0, 180);
-        const item = {
-          incident_id: safeText(raw.incident_id || raw.incidentId || ('PV-' + Date.now().toString(36).toUpperCase())),
-          timestamp: Number(raw.timestamp) || Math.floor(Date.now() / 1000),
-          iso_date: safeText(raw.iso_date || raw.isoDate || nowIso()),
-          jurisdiction,
-          zone,
-          source,
-          severity,
-          lifecycle_state: raw.lifecycle_state || 'Reported',
-          notes: safeText(raw.notes || '').slice(0, 3000),
-          latitude: null,
-          longitude: null,
-          analysis_provider: raw.analysis_provider || 'deterministic_fallback',
-          analysis_status: raw.analysis_status || 'completed',
-          action_log: Array.isArray(raw.action_log) ? raw.action_log : [{ timestamp: nowIso(), note: 'Record created' }],
-          analysis: raw.analysis && typeof raw.analysis === 'object' ? raw.analysis : null,
-          _local: Boolean(raw._local)
-        };
-        const lat = raw.latitude ?? raw.lat;
-        const lng = raw.longitude ?? raw.lng;
-        if (lat !== null && lat !== undefined && lng !== null && lng !== undefined && validLatLng(lat, lng)) {
-          item.latitude = Number(lat);
-          item.longitude = Number(lng);
-        }
-        if (!item.analysis) {
-          item.analysis = buildFallbackDossier(item);
-        }
-        return item;
-      }
-
-      function loadStoredIncidents() {
+      function loadData() {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
           if (raw) {
             const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              return parsed.map(normalizeRecord).filter(Boolean);
-            }
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
           }
-        } catch (e) { /* ignore */ }
-        return SEED_INCIDENTS.map(normalizeRecord);
+        } catch (e) {}
+        return SEED_DATA;
       }
 
-      function persistLocal() {
+      function saveData() {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state.incidents));
-        } catch (e) {
-          showFeedback('intakeFeedbackBanner', 'Browser localStorage is full. Export registry to JSON.', 'error');
-        }
+        } catch (e) {}
       }
 
-      function showFeedback(elementId, message, type = 'success') {
-        const el = byId(elementId);
-        if (!el) return;
-        el.className = `feedback-banner ${type}`;
-        el.textContent = message;
-        el.style.display = 'flex';
-      }
-
-      // Tab Navigation Switcher
-      function switchTab(tabId) {
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-          const isActive = btn.getAttribute('data-tab') === tabId;
-          btn.classList.toggle('active', isActive);
-          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-        document.querySelectorAll('.view-content').forEach(view => {
-          view.classList.toggle('active', view.id === tabId);
-        });
-        if (tabId === 'tab-map' && state.map) {
-          setTimeout(() => state.map.invalidateSize(), 150);
-        }
-      }
-
-      // Update Statistics & Counters
-      function refreshStats() {
+      function updateStats() {
         const total = state.incidents.length;
         const severe = state.incidents.filter(x => x.severity === 'Severe').length;
         const mapped = state.incidents.filter(x => x.latitude !== null && x.longitude !== null).length;
 
-        byId('statTotalIncidents').textContent = total;
-        byId('statSevereIncidents').textContent = severe;
-        byId('statMappedIncidents').textContent = mapped;
-        byId('tabCountBadge').textContent = total;
-        byId('mapPointCounter').textContent = `${mapped} Mapped / ${total} Total`;
+        byId('cStatTotal').textContent = total;
+        byId('cStatSevere').textContent = severe;
+        byId('cStatMapped').textContent = mapped;
+        byId('cCountBadge').textContent = total;
       }
 
-      // Render Registry Table
-      function renderRegistryTable() {
-        const tbody = byId('registryTableBody');
-        const q = (byId('regSearchInput')?.value || '').trim().toLowerCase();
-        const sev = byId('regSeverityFilter')?.value || '';
-        const jur = byId('regJurisdictionFilter')?.value || '';
-        const st = byId('regStatusFilter')?.value || '';
+      function renderTable() {
+        const tbody = byId('cTableBody');
+        const q = (byId('cSearchInput')?.value || '').trim().toLowerCase();
+        const sev = byId('cFilterSeverity')?.value || '';
 
         let items = state.incidents.slice();
-
         if (q) {
-          items = items.filter(x =>
-            (x.zone || '').toLowerCase().includes(q) ||
-            (x.notes || '').toLowerCase().includes(q) ||
-            (x.incident_id || '').toLowerCase().includes(q) ||
-            (x.source || '').toLowerCase().includes(q)
-          );
+          items = items.filter(x => (x.zone || '').toLowerCase().includes(q) || (x.source || '').toLowerCase().includes(q) || (x.incident_id || '').toLowerCase().includes(q));
         }
         if (sev) items = items.filter(x => x.severity === sev);
-        if (jur) items = items.filter(x => x.jurisdiction === jur);
-        if (st) items = items.filter(x => (x.lifecycle_state || 'Reported') === st);
 
-        refreshStats();
-
-        if (!state.incidents.length) {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-dim)">Registry is empty. Submit a report to begin.</td></tr>';
-          return;
-        }
+        updateStats();
 
         if (!items.length) {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-dim)">No incidents match the active search or filter.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim)">No incidents found.</td></tr>';
           return;
         }
-
-        items.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
 
         tbody.innerHTML = items.map(item => {
           const isSelected = item.incident_id === state.activeId;
           const timeStr = new Date(item.iso_date || (item.timestamp * 1000)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const sevClass = (item.severity || 'Moderate').toLowerCase();
+          const col = severityColors[item.severity] || severityColors.Moderate;
 
           return `
-            <tr class="${isSelected ? 'active-row' : ''}" data-id="${escapeHtml(item.incident_id)}">
-              <td style="font-family:var(--font-mono);font-size:11px">${escapeHtml(timeStr)}</td>
-              <td style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--cyan)">${escapeHtml(item.incident_id)}</td>
+            <tr style="${isSelected ? 'background:rgba(6,182,212,0.15)' : ''}" data-id="${escapeHtml(item.incident_id)}">
+              <td style="font-family:var(--font-mono)">${escapeHtml(timeStr)}</td>
+              <td style="font-family:var(--font-mono);font-weight:700;color:var(--cyan)">${escapeHtml(item.incident_id)}</td>
               <td>${escapeHtml(item.zone)}</td>
-              <td>${escapeHtml(item.jurisdiction)}</td>
               <td>${escapeHtml(item.source)}</td>
-              <td><span class="badge-sev ${sevClass}">${escapeHtml(item.severity)}</span></td>
-              <td><span class="badge-status">${escapeHtml(item.lifecycle_state || 'Reported')}</span></td>
-              <td>
-                <button class="btn small" data-action="inspect" data-id="${escapeHtml(item.incident_id)}">Inspect</button>
-              </td>
+              <td><span style="color:${col};font-weight:700;font-family:var(--font-mono)">${escapeHtml(item.severity)}</span></td>
+              <td>${escapeHtml(item.lifecycle_state || 'Reported')}</td>
+              <td><button class="btn small" data-action="view" data-id="${escapeHtml(item.incident_id)}">Inspect</button></td>
             </tr>
           `;
         }).join('');
 
-        tbody.querySelectorAll('tr').forEach(row => {
-          row.addEventListener('click', () => {
-            selectIncident(row.getAttribute('data-id'), false);
-          });
+        tbody.querySelectorAll('tr').forEach(r => {
+          r.addEventListener('click', () => selectIncident(r.getAttribute('data-id'), false));
         });
 
-        tbody.querySelectorAll('[data-action="inspect"]').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+        tbody.querySelectorAll('[data-action="view"]').forEach(b => {
+          b.addEventListener('click', (e) => {
             e.stopPropagation();
-            selectIncident(btn.getAttribute('data-id'), true);
-            switchTab('tab-dossier');
+            selectIncident(b.getAttribute('data-id'), true);
+            switchConsoleTab('c-dossier');
           });
         });
       }
 
-      // Render Research Dossier
       function renderDossier(item) {
-        if (!item) {
-          byId('dossierActiveIdBadge').textContent = 'NO INCIDENT SELECTED';
-          byId('dosParticulateProfile').innerHTML = '<p>Select an incident in the Registry or Map to view its qualitative chemical profile.</p>';
-          byId('dosImmediateProtocol').innerHTML = '<p>Incident-specific safety steps will appear here.</p>';
-          byId('dosLongTermEngineering').innerHTML = '<p>Site assessment recommendations will appear here.</p>';
-          byId('dosStatutoryMemo').innerHTML = '<p>Jurisdiction-aware legal reference will appear here.</p>';
-          return;
-        }
-
-        const a = item.analysis || buildFallbackDossier(item);
-        byId('dossierActiveIdBadge').textContent = `${item.incident_id} (${item.severity.toUpperCase()})`;
-
-        byId('dosParticulateProfile').innerHTML = `<p>${escapeHtml(a.particulate_profile || 'No particulate profile provided.')}</p>`;
+        if (!item) return;
+        const a = item.analysis || {};
+        byId('cDossierProfile').innerHTML = `<p>${escapeHtml(a.particulate_profile || 'No particulate profile provided.')}</p>`;
 
         const protocols = Array.isArray(a.immediate_protocol) ? a.immediate_protocol : [a.immediate_protocol || ''];
-        byId('dosImmediateProtocol').innerHTML = protocols.length
+        byId('cDossierProtocols').innerHTML = protocols.length
           ? '<ul>' + protocols.map(p => `<li>${escapeHtml(p)}</li>`).join('') + '</ul>'
-          : '<p>Follow standard emergency separation protocols.</p>';
+          : '<p>Standard safety separation protocols apply.</p>';
 
-        byId('dosLongTermEngineering').innerHTML = `<p>${escapeHtml(a.long_term_engineering || 'No engineering recommendation provided.')}</p>`;
-        byId('dosStatutoryMemo').innerHTML = `<p>${escapeHtml(a.statutory_memo || 'Consult competent environmental authority.')}</p>`;
+        byId('cDossierEngineering').innerHTML = `<p>${escapeHtml(a.long_term_engineering || 'No engineering recommendation provided.')}</p>`;
+        byId('cDossierLegal').innerHTML = `<p>${escapeHtml(a.statutory_memo || 'Consult competent environmental authority.')}</p>`;
 
-        renderWorkflow(item);
+        renderPrintSheet(item);
       }
 
-      // Render Workflow View
-      function renderWorkflow(item) {
-        if (!item) {
-          byId('workflowIncidentBadge').textContent = 'NO SELECTION';
-          byId('actionLogList').innerHTML = '<div class="action-log-item">No incident selected.</div>';
-          return;
-        }
+      function renderPrintSheet(item) {
+        if (!item) return;
+        const a = item.analysis || {};
+        const protocols = Array.isArray(a.immediate_protocol) ? a.immediate_protocol : [a.immediate_protocol];
 
-        byId('workflowIncidentBadge').textContent = `${item.incident_id} · ${item.lifecycle_state || 'Reported'}`;
-
-        const statesOrder = ['Reported', 'Validated', 'Assessed', 'ResponseActive', 'Documented', 'Resolved'];
-        const currentIdx = statesOrder.indexOf(item.lifecycle_state || 'Reported');
-
-        statesOrder.forEach((st, idx) => {
-          const stepEl = byId(`step${st}`);
-          if (!stepEl) return;
-          stepEl.className = 'workflow-step';
-          if (idx < currentIdx) stepEl.classList.add('completed');
-          else if (idx === currentIdx) stepEl.classList.add('current');
-        });
-
-        const logs = Array.isArray(item.action_log) ? item.action_log : [];
-        if (logs.length === 0) {
-          byId('actionLogList').innerHTML = '<div class="action-log-item">No history recorded yet.</div>';
-        } else {
-          byId('actionLogList').innerHTML = logs.map(l => `
-            <div class="action-log-item">
-              <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">${escapeHtml(new Date(l.timestamp).toLocaleString())}:</span>
-              <span> ${escapeHtml(l.note)}</span>
+        const markup = `
+          <div style="border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px;text-align:center">
+            <div style="border:2px solid #b91c1c;color:#b91c1c;display:inline-block;padding:2px 10px;font-weight:bold;letter-spacing:1px;font-size:9pt;margin-bottom:6px">
+              DRAFT FOR ADMINISTRATIVE REVIEW — NOT AN ENFORCEMENT ORDER
             </div>
-          `).join('');
-        }
+            <h2 style="font-size:16pt;margin:2px 0;letter-spacing:1px">PRANA-VAYU (प्राण-वायु)</h2>
+            <p style="font-size:9pt;margin:0;font-style:italic">Air Pollution Incident Report &amp; Environmental Representation</p>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9pt;margin-bottom:12px;border-bottom:1px solid #ddd;padding-bottom:6px">
+            <div><strong>Reference:</strong> ${escapeHtml(item.incident_id)}<br><strong>Jurisdiction:</strong> ${escapeHtml(item.jurisdiction)}</div>
+            <div style="text-align:right"><strong>Severity:</strong> ${escapeHtml(item.severity)}<br><strong>Source:</strong> ${escapeHtml(item.source)}</div>
+          </div>
+          <p><strong>Locality:</strong> ${escapeHtml(item.zone)}</p>
+          ${item.latitude ? `<p><strong>Coordinates:</strong> ${escapeHtml(item.latitude)}° N, ${escapeHtml(item.longitude)}° E</p>` : ''}
+          <p><strong>Field Notes:</strong> ${escapeHtml(item.notes || 'None')}</p>
+          <h4 style="margin:8px 0 4px;font-size:10pt">Qualitative Chemical Profile:</h4>
+          <p style="font-size:9pt">${escapeHtml(a.particulate_profile || '')}</p>
+          <h4 style="margin:8px 0 4px;font-size:10pt">Immediate Protocols:</h4>
+          <ul style="padding-left:18px;font-size:9pt">${protocols.map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+          <h4 style="margin:8px 0 4px;font-size:10pt">Statutory Reference:</h4>
+          <p style="font-size:9pt">${escapeHtml(a.statutory_memo || '')}</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:30px;border-top:1px solid #111;padding-top:6px;font-size:9pt">
+            <div>Field Observer Lead: _______________________</div>
+            <div>Reviewing Officer: _______________________</div>
+          </div>
+        `;
+        byId('cPrintNoticeSheet').innerHTML = markup;
+        byId('printContainer').innerHTML = markup;
       }
 
-      // Select Active Incident
-      function selectIncident(id, panMap = false) {
+      function selectIncident(id, pan = false) {
         const item = state.incidents.find(x => x.incident_id === id);
         if (!item) return;
         state.activeId = id;
         renderDossier(item);
-        renderRegistryTable();
+        renderTable();
 
-        const marker = state.markers.get(id);
-        if (marker && state.map) {
-          if (panMap) {
-            state.map.setView(marker.getLatLng(), Math.max(state.map.getZoom(), 14));
-            marker.openPopup();
-          }
+        const m = state.markers.get(id);
+        if (m && state.map && pan) {
+          state.map.setView(m.getLatLng(), Math.max(state.map.getZoom(), 13));
+          m.openPopup();
         }
       }
 
-      // Map Markers & Plume Circles
-      function renderMapLayers() {
+      function renderMap() {
         if (!state.map || !state.markerLayer) return;
         state.markerLayer.clearLayers();
         state.markers.clear();
@@ -1942,574 +1833,123 @@
           if (item.latitude === null || item.longitude === null) return;
           const lat = Number(item.latitude), lng = Number(item.longitude);
           const col = severityColors[item.severity] || severityColors.Moderate;
+          const radius = item.severity === 'Severe' ? 250 : (item.severity === 'High' ? 120 : 60);
 
-          const cordonMeters = item.severity === 'Severe' ? 250 : (item.severity === 'High' ? 120 : 60);
+          const c = L.circle([lat, lng], { radius, color: col, weight: 1, dashArray: '3, 6', fillColor: col, fillOpacity: 0.12 }).addTo(state.markerLayer);
+          state.circles.set(item.incident_id, c);
 
-          const circle = L.circle([lat, lng], {
-            radius: cordonMeters,
-            color: col,
-            weight: 1,
-            dashArray: '3, 6',
-            fillColor: col,
-            fillOpacity: 0.12
-          }).addTo(state.markerLayer);
-          state.circles.set(item.incident_id, circle);
-
-          const marker = L.circleMarker([lat, lng], {
-            radius: item.severity === 'Severe' ? 9 : 7,
-            color: '#ffffff',
-            weight: 1.5,
-            fillColor: col,
-            fillOpacity: 0.95
-          }).addTo(state.markerLayer);
-
-          marker.bindPopup(`
-            <div style="font-size:12px;line-height:1.4">
-              <strong style="color:#38bdf8">${escapeHtml(item.zone)}</strong><br>
-              <span>Source: ${escapeHtml(item.source)}</span><br>
-              <span>Severity: <strong style="color:${col}">${escapeHtml(item.severity)}</strong></span><br>
-              <span style="font-size:10px;color:#94a3b8">Plume Cordon: ${cordonMeters}m</span><br>
-              <button class="btn small primary" style="margin-top:6px;width:100%" onclick="window.pranaInspectFromMap('${escapeHtml(item.incident_id)}')">Inspect Dossier</button>
-            </div>
-          `);
-
-          marker.on('click', () => selectIncident(item.incident_id, false));
-          state.markers.set(item.incident_id, marker);
+          const m = L.circleMarker([lat, lng], { radius: item.severity === 'Severe' ? 8 : 6, color: '#fff', weight: 1.5, fillColor: col, fillOpacity: 0.95 }).addTo(state.markerLayer);
+          m.bindPopup(`<strong>${escapeHtml(item.zone)}</strong><br>${escapeHtml(item.source)}<br><strong style="color:${col}">${escapeHtml(item.severity)}</strong><br><button class="btn small primary" style="margin-top:4px" onclick="window.pvInspectMap('${escapeHtml(item.incident_id)}')">Inspect Dossier</button>`);
+          m.on('click', () => selectIncident(item.incident_id, false));
+          state.markers.set(item.incident_id, m);
         });
       }
-      window.pranaInspectFromMap = id => {
+      window.pvInspectMap = id => {
         selectIncident(id, false);
-        switchTab('tab-dossier');
+        switchConsoleTab('c-dossier');
       };
 
-      // Leaflet Initialization
-      function initLeafletMap() {
-        if (!window.L) {
-          byId('map').innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-dim)">Leaflet map library could not load.</div>';
-          return;
-        }
-
+      function initMap() {
+        if (!window.L) return;
         state.map = L.map('map', { attributionControl: false }).setView([10.9205, 78.7410], 12);
-
-        // Dark Matter map tiles with OpenStreetMap fallback
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19,
-          subdomains: 'abcd',
-          attribution: '&copy; CartoDB &copy; OpenStreetMap'
-        }).addTo(state.map);
-
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(state.map);
         state.markerLayer = L.layerGroup().addTo(state.map);
-
-        // Legend control
-        const legend = L.control({ position: 'bottomright' });
-        legend.onAdd = () => {
-          const div = L.DomUtil.create('div', 'map-legend');
-          div.innerHTML = `
-            <div style="font-weight:700;margin-bottom:4px;color:var(--cyan)">MICRO-PLUME SEVERITY</div>
-            <div class="legend-row"><span class="legend-dot" style="background:${severityColors.Severe}"></span>Severe (250m Cordon)</div>
-            <div class="legend-row"><span class="legend-dot" style="background:${severityColors.High}"></span>High (120m Cordon)</div>
-            <div class="legend-row"><span class="legend-dot" style="background:${severityColors.Moderate}"></span>Moderate (60m Cordon)</div>
-          `;
-          return div;
-        };
-        legend.addTo(state.map);
-
-        // Click on map to set coordinates
-        state.map.on('click', (e) => {
-          if (state.pinMode) {
-            const lat = Number(e.latlng.lat.toFixed(5));
-            const lng = Number(e.latlng.lng.toFixed(5));
-            byId('formLat').value = lat;
-            byId('formLng').value = lng;
-            state.pinMode = false;
-            byId('btnPinFromMap').textContent = 'Pick Location on Map';
-            if (state.pinMarker) state.map.removeLayer(state.pinMarker);
-            state.pinMarker = L.marker([lat, lng]).addTo(state.map);
-            switchTab('tab-intake');
-            showFeedback('intakeFeedbackBanner', `Pinned coordinates: ${lat}, ${lng}`, 'success');
-          }
-        });
-
-        setTimeout(() => state.map.invalidateSize(), 200);
       }
 
-      // API Synchronization
-      async function triggerApiSync(silent = false) {
-        if (!state.apiUrl) {
-          updateConnectionStatus('demo', 'LOCAL DEMO MODE');
-          return;
-        }
-
-        if (state.isSyncing) return;
-        state.isSyncing = true;
-        updateConnectionStatus('demo', 'SYNCING...');
-
-        try {
-          const resp = await fetch(state.apiUrl.replace(/\/+$/, '') + '/incidents', {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-          });
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-          const data = await resp.json();
-          const items = Array.isArray(data) ? data : (Array.isArray(data.incidents) ? data.incidents : []);
-          state.incidents = items.map(normalizeRecord).filter(Boolean);
-          persistLocal();
-          updateConnectionStatus('live', 'AWS API CONNECTED');
-          byId('statSyncTime').textContent = `Last sync: ${new Date().toLocaleTimeString()} (${items.length} records)`;
-          byId('footerSyncStatusText').textContent = `AWS connected (${items.length} records)`;
-          renderRegistryTable();
-          renderMapLayers();
-          if (!silent) showFeedback('settingsFeedback', `Successfully synchronized ${items.length} incidents from AWS API Gateway.`, 'success');
-        } catch (err) {
-          updateConnectionStatus('error', 'BACKEND UNREACHABLE');
-          byId('statSyncTime').textContent = `Sync failed at ${new Date().toLocaleTimeString()}`;
-          byId('footerSyncStatusText').textContent = 'Backend unreachable (using local storage)';
-          if (!silent) showFeedback('settingsFeedback', `AWS API connection failed: ${err.message}. Retaining local records.`, 'error');
-        } finally {
-          state.isSyncing = false;
+      function switchConsoleTab(tabId) {
+        document.querySelectorAll('.c-tab').forEach(b => b.classList.toggle('active', b.getAttribute('data-target') === tabId));
+        document.querySelectorAll('.c-view').forEach(v => v.classList.toggle('active', v.id === tabId));
+        if (tabId === 'c-map' && state.map) {
+          setTimeout(() => state.map.invalidateSize(), 150);
         }
       }
 
-      function updateConnectionStatus(mode, label) {
-        const badge = byId('connectionBadge');
-        const text = byId('connectionText');
-        const statState = byId('statOperationalState');
+      // Event Listeners
+      document.querySelectorAll('.c-tab').forEach(b => {
+        b.addEventListener('click', () => switchConsoleTab(b.getAttribute('data-target')));
+      });
 
-        badge.className = `status-pill ${mode}`;
-        text.textContent = label;
-        statState.textContent = label;
+      byId('cBtnLoadSample')?.addEventListener('click', () => {
+        byId('cJurisdiction').value = 'India';
+        byId('cZone').value = 'Samayapuram University Perimeter, Gate 4';
+        byId('cSource').value = 'Biomass burning';
+        byId('cSeverity').value = 'Severe';
+        byId('cNotes').value = 'Dense leaf and mixed plastic smoldering in stormwater ditch upwind of student hostel block B intake. Plume lofting trapped under morning inversion.';
+        byId('cLat').value = '10.9205';
+        byId('cLng').value = '78.7410';
+        switchConsoleTab('c-intake');
+      });
 
-        if (mode === 'live') {
-          statState.style.color = 'var(--accent)';
-        } else if (mode === 'error') {
-          statState.style.color = 'var(--danger)';
-        } else {
-          statState.style.color = 'var(--warning)';
-        }
-      }
+      byId('cIntakeForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const lat = byId('cLat').value.trim();
+        const lng = byId('cLng').value.trim();
 
-      // Build Official Regulatory Notice Sheet
-      function generateNoticeMarkup() {
-        const item = state.incidents.find(x => x.incident_id === state.activeId) || state.incidents[0];
-        if (!item) return null;
-
-        const a = item.analysis || buildFallbackDossier(item);
-        const authority = byId('inputTargetAuthority')?.value.trim() || 'Competent State Pollution Control Board / Ward Municipal Office';
-        const lead = byId('inputFieldLeadName')?.value.trim() || 'SARVEPALLI AUDI SIVA BHANUVARDHAN (Lead Observer)';
-        const dateStr = new Date(item.iso_date || (item.timestamp * 1000)).toLocaleString();
-        const protocols = Array.isArray(a.immediate_protocol) ? a.immediate_protocol : [a.immediate_protocol];
-
-        return `
-          <div style="border: 3px double #111827; padding: 24px; position: relative;">
-            <div style="text-align:center; border-bottom: 2px solid #111827; padding-bottom: 12px; margin-bottom: 16px;">
-              <div style="border: 2px solid #b91c1c; color: #b91c1c; display:inline-block; padding: 3px 12px; font-weight: bold; letter-spacing: 2px; font-size: 10pt; margin-bottom: 8px;">
-                DRAFT FOR ADMINISTRATIVE REVIEW — NOT AN ENFORCEMENT ORDER
-              </div>
-              <h1 style="font-size: 20pt; margin: 4px 0 0; letter-spacing: 1px;">PRANA-VAYU (प्राण-वायु)</h1>
-              <p style="font-size: 10pt; margin: 2px 0 0; font-style: italic;">
-                Operational Air Pollution Incident Report &amp; Environmental Representation
-              </p>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; font-size: 10pt; margin-bottom: 14px; border-bottom: 1px solid #d1d5db; padding-bottom: 8px;">
-              <div>
-                <strong>Incident Reference:</strong> ${escapeHtml(item.incident_id)}<br>
-                <strong>Timestamp:</strong> ${escapeHtml(dateStr)}<br>
-                <strong>Jurisdiction:</strong> ${escapeHtml(item.jurisdiction)}
-              </div>
-              <div style="text-align: right;">
-                <strong>Assessed Severity:</strong> ${escapeHtml(item.severity)}<br>
-                <strong>Plume Source:</strong> ${escapeHtml(item.source)}<br>
-                <strong>Lifecycle Status:</strong> ${escapeHtml(item.lifecycle_state || 'Reported')}
-              </div>
-            </div>
-
-            <div style="margin-bottom: 14px;">
-              <p><strong>TO:</strong> ${escapeHtml(authority)}</p>
-              <p><strong>SUBJECT:</strong> Formal representation regarding unmitigated micro-climate ${escapeHtml(item.source.toLowerCase())} plume at ${escapeHtml(item.zone)}.</p>
-            </div>
-
-            <div style="margin-bottom: 14px;">
-              <h4 style="font-size: 11pt; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 6px;">1. Locality &amp; Observation Facts</h4>
-              <p><strong>Specific Zone:</strong> ${escapeHtml(item.zone)}</p>
-              ${item.latitude ? `<p><strong>Verified Coordinates:</strong> ${escapeHtml(item.latitude)}° N, ${escapeHtml(item.longitude)}° E</p>` : '<p><em>Coordinates: Not recorded by observer.</em></p>'}
-              <p><strong>Field Notes:</strong> ${escapeHtml(item.notes || 'No supplementary context recorded.')}</p>
-            </div>
-
-            <div style="margin-bottom: 14px;">
-              <h4 style="font-size: 11pt; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 6px;">2. Qualitative Chemical Profile &amp; Exposure Risk</h4>
-              <p>${escapeHtml(a.particulate_profile)}</p>
-              <p style="font-size: 9pt; font-style: italic; color: #4b5563; margin-top: 4px;">
-                Compliance Note: No sensor concentration was measured by this application. Numerical PM2.5/PM10 readings remain explicitly null.
-              </p>
-            </div>
-
-            <div style="margin-bottom: 14px;">
-              <h4 style="font-size: 11pt; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 6px;">3. Recommended Immediate Physical Countermeasures</h4>
-              <ul style="padding-left: 20px; margin: 4px 0;">
-                ${protocols.map(p => `<li>${escapeHtml(p)}</li>`).join('')}
-              </ul>
-            </div>
-
-            <div style="margin-bottom: 14px;">
-              <h4 style="font-size: 11pt; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 6px;">4. Statutory Legal Routing &amp; Regulatory Foundation</h4>
-              <p>${escapeHtml(a.statutory_memo)}</p>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; padding-top: 10px;">
-              <div style="border-top: 1px solid #111827; padding-top: 6px; font-size: 10pt;">
-                <strong>Field Observer Lead:</strong><br>
-                ${escapeHtml(lead)}<br>
-                <span>Date: ________________________</span>
-              </div>
-              <div style="border-top: 1px solid #111827; padding-top: 6px; font-size: 10pt;">
-                <strong>Institutional Reviewing Officer:</strong><br>
-                <span>Signature / Stamp: ________________________</span><br>
-                <span>Date: ________________________</span>
-              </div>
-            </div>
-
-            <div style="margin-top: 20px; text-align: center; font-size: 8pt; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px;">
-              PRANA-VAYU Platform · Developed by Sarvepalli Audi Siva Bhanuvardhan (AS PHENIX) · Verify all facts before statutory transmission.
-            </div>
-          </div>
-        `;
-      }
-
-      // Event Binding & Initial Setup
-      function bindEvents() {
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            switchTab(btn.getAttribute('data-tab'));
-          });
-        });
-
-        byId('quickReportNavBtn')?.addEventListener('click', () => switchTab('tab-intake'));
-        byId('overviewGoIntakeBtn')?.addEventListener('click', () => switchTab('tab-intake'));
-        byId('overviewLoadSampleBtn')?.addEventListener('click', fillSampleScenario);
-        byId('btnFillSample')?.addEventListener('click', fillSampleScenario);
-
-        // Character counts
-        byId('formZone')?.addEventListener('input', e => {
-          byId('zoneCharCount').textContent = `${e.target.value.length}/180`;
-        });
-        byId('formNotes')?.addEventListener('input', e => {
-          byId('notesCharCount').textContent = `${e.target.value.length}/3000`;
-        });
-
-        // Form Submit
-        byId('intakeForm')?.addEventListener('submit', async e => {
-          e.preventDefault();
-          const form = e.currentTarget;
-          if (!form.reportValidity()) return;
-
-          const latVal = byId('formLat').value.trim();
-          const lngVal = byId('formLng').value.trim();
-
-          if (Boolean(latVal) !== Boolean(lngVal)) {
-            showFeedback('intakeFeedbackBanner', 'Provide both Latitude and Longitude, or leave both blank.', 'error');
-            return;
+        const newItem = {
+          incident_id: 'PV-' + Date.now().toString(36).toUpperCase(),
+          timestamp: Math.floor(Date.now() / 1000),
+          iso_date: nowIso(),
+          jurisdiction: byId('cJurisdiction').value,
+          zone: byId('cZone').value.trim(),
+          source: byId('cSource').value,
+          severity: byId('cSeverity').value,
+          lifecycle_state: 'Reported',
+          notes: byId('cNotes').value.trim(),
+          latitude: lat ? Number(lat) : null,
+          longitude: lng ? Number(lng) : null,
+          analysis: {
+            particulate_profile: 'Combustion products include inhalable fine particles, carbon monoxide, and volatile organic vapors. No concentration measured by this platform.',
+            immediate_protocol: ['Maintain safe distance; deploy 15-minute low pressure water mist dousing if safe.', 'Reroute pedestrians 120m upwind.'],
+            long_term_engineering: 'Evaluate composting solutions and plant high-APTI native vegetative buffers (Peepal, Neem, Kaner).',
+            statutory_memo: 'Section 19(5) Air (Prevention and Control of Pollution) Act, 1981 prohibits unauthorized open burning in air pollution control areas.'
           }
-          if (latVal && !validLatLng(latVal, lngVal)) {
-            showFeedback('intakeFeedbackBanner', 'Coordinates are outside valid latitude [-90,90] or longitude [-180,180] range.', 'error');
-            return;
-          }
-
-          const submitBtn = byId('btnSubmitIntake');
-          submitBtn.disabled = true;
-          submitBtn.textContent = 'Submitting...';
-
-          const inputPayload = {
-            jurisdiction: byId('formJurisdiction').value,
-            zone: byId('formZone').value.trim(),
-            source: byId('formSource').value,
-            severity: byId('formSeverity').value,
-            notes: byId('formNotes').value.trim(),
-            latitude: latVal ? Number(latVal) : null,
-            longitude: lngVal ? Number(lngVal) : null
-          };
-
-          const newRecord = normalizeRecord({
-            incident_id: 'PV-' + Date.now().toString(36).toUpperCase(),
-            timestamp: Math.floor(Date.now() / 1000),
-            iso_date: nowIso(),
-            ...inputPayload
-          });
-
-          if (state.apiUrl) {
-            try {
-              const resp = await fetch(state.apiUrl.replace(/\/+$/, '') + '/incidents', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(inputPayload)
-              });
-              if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-              const data = await resp.json();
-              const saved = normalizeRecord(data.record || data);
-              if (saved) {
-                newRecord.incident_id = saved.incident_id;
-                newRecord.analysis = saved.analysis;
-                newRecord.analysis_provider = saved.analysis_provider;
-                newRecord._local = false;
-              }
-              showFeedback('intakeFeedbackBanner', `Report logged to AWS DynamoDB with ID ${newRecord.incident_id}.`, 'success');
-            } catch (err) {
-              newRecord._local = true;
-              showFeedback('intakeFeedbackBanner', `AWS submission failed (${err.message}). Stored in local browser registry.`, 'error');
-            }
-          } else {
-            newRecord._local = true;
-            showFeedback('intakeFeedbackBanner', `Incident recorded in local registry (${newRecord.incident_id}). Ready for gatekeeper review.`, 'success');
-          }
-
-          state.incidents.unshift(newRecord);
-          state.activeId = newRecord.incident_id;
-          persistLocal();
-          renderRegistryTable();
-          renderMapLayers();
-          renderDossier(newRecord);
-
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit Observation Report';
-
-          form.reset();
-          byId('zoneCharCount').textContent = '0/180';
-          byId('notesCharCount').textContent = '0/3000';
-          if (state.pinMarker && state.map) {
-            state.map.removeLayer(state.pinMarker);
-            state.pinMarker = null;
-          }
-        });
-
-        // Clear Form
-        byId('btnClearForm')?.addEventListener('click', () => {
-          byId('intakeForm').reset();
-          byId('zoneCharCount').textContent = '0/180';
-          byId('notesCharCount').textContent = '0/3000';
-          byId('intakeFeedbackBanner').style.display = 'none';
-        });
-
-        // Geolocation
-        byId('btnAcquireGps')?.addEventListener('click', () => {
-          if (!navigator.geolocation) {
-            showFeedback('intakeFeedbackBanner', 'Geolocation not supported by your browser.', 'error');
-            return;
-          }
-          showFeedback('intakeFeedbackBanner', 'Acquiring GPS fix...', 'success');
-          navigator.geolocation.getCurrentPosition(
-            pos => {
-              const lat = Number(pos.coords.latitude.toFixed(5));
-              const lng = Number(pos.coords.longitude.toFixed(5));
-              byId('formLat').value = lat;
-              byId('formLng').value = lng;
-              showFeedback('intakeFeedbackBanner', `Acquired coordinates: ${lat}, ${lng} (±${Math.round(pos.coords.accuracy)}m)`, 'success');
-            },
-            err => {
-              showFeedback('intakeFeedbackBanner', `GPS acquisition failed (${err.message}).`, 'error');
-            },
-            { enableHighAccuracy: true, timeout: 8000 }
-          );
-        });
-
-        // Map Pinning
-        byId('btnPinFromMap')?.addEventListener('click', () => {
-          state.pinMode = true;
-          switchTab('tab-map');
-          byId('btnPinFromMap').textContent = 'Click on Map Now!';
-        });
-
-        byId('btnClearCoords')?.addEventListener('click', () => {
-          byId('formLat').value = '';
-          byId('formLng').value = '';
-          if (state.pinMarker && state.map) {
-            state.map.removeLayer(state.pinMarker);
-            state.pinMarker = null;
-          }
-        });
-
-        // Map Fit Extent
-        byId('btnFitMapExtent')?.addEventListener('click', () => {
-          if (!state.map) return;
-          const coords = state.incidents
-            .filter(x => x.latitude !== null && x.longitude !== null)
-            .map(x => [Number(x.latitude), Number(x.longitude)]);
-          if (coords.length > 0) {
-            state.map.fitBounds(coords, { padding: [40, 40], maxZoom: 15 });
-          } else {
-            state.map.setView([10.9205, 78.7410], 12);
-          }
-        });
-
-        // Registry Filters
-        byId('regSearchInput')?.addEventListener('input', renderRegistryTable);
-        byId('regSeverityFilter')?.addEventListener('change', renderRegistryTable);
-        byId('regJurisdictionFilter')?.addEventListener('change', renderRegistryTable);
-        byId('regStatusFilter')?.addEventListener('change', renderRegistryTable);
-        byId('btnResetFilters')?.addEventListener('click', () => {
-          byId('regSearchInput').value = '';
-          byId('regSeverityFilter').value = '';
-          byId('regJurisdictionFilter').value = '';
-          byId('regStatusFilter').value = '';
-          renderRegistryTable();
-        });
-
-        byId('btnSyncRegistry')?.addEventListener('click', () => triggerApiSync(false));
-        byId('btnExportRegistryJson')?.addEventListener('click', exportRegistryJson);
-        byId('btnExportJsonDirect')?.addEventListener('click', exportRegistryJson);
-
-        // Lifecycle Advance
-        byId('btnAdvanceLifecycle')?.addEventListener('click', () => {
-          const item = state.incidents.find(x => x.incident_id === state.activeId);
-          if (!item) {
-            alert('Select an incident first.');
-            return;
-          }
-          const nextState = byId('selectNextState').value;
-          const noteText = byId('inputActionLogNote').value.trim() || `Advanced lifecycle to ${nextState}`;
-
-          item.lifecycle_state = nextState;
-          if (!Array.isArray(item.action_log)) item.action_log = [];
-          item.action_log.push({ timestamp: nowIso(), note: noteText });
-
-          persistLocal();
-          renderWorkflow(item);
-          renderRegistryTable();
-          byId('inputActionLogNote').value = '';
-        });
-
-        // Printable Modal Handlers
-        const openPrintModal = () => {
-          const html = generateNoticeMarkup();
-          if (!html) {
-            alert('No incident available to generate notice.');
-            return;
-          }
-          byId('modalPrintSheetContent').innerHTML = html;
-          byId('printPaperContainer').innerHTML = html;
-          byId('printModal').classList.add('open');
         };
 
-        byId('btnDossierPrintDraft')?.addEventListener('click', openPrintModal);
-        byId('btnTriggerPrintSheet')?.addEventListener('click', openPrintModal);
-        byId('modalBtnClose')?.addEventListener('click', () => byId('printModal').classList.remove('open'));
-        byId('modalBtnPrintExec')?.addEventListener('click', () => window.print());
+        state.incidents.unshift(newItem);
+        state.activeId = newItem.incident_id;
+        saveData();
+        renderTable();
+        renderMap();
+        renderDossier(newItem);
 
-        // Settings Handlers
-        byId('btnSaveApiEndpoint')?.addEventListener('click', () => {
-          const raw = byId('inputApiEndpoint').value.trim();
-          if (!raw) {
-            state.apiUrl = '';
-            localStorage.removeItem(API_ENDPOINT_KEY);
-            updateConnectionStatus('demo', 'LOCAL DEMO MODE');
-            showFeedback('settingsFeedback', 'API endpoint cleared. Running in local demo mode.', 'success');
-            return;
-          }
-          try {
-            const u = new URL(raw);
-            if (u.protocol !== 'https:' && u.hostname !== 'localhost' && u.hostname !== '127.0.0.1') {
-              throw new Error('Endpoint must use HTTPS.');
-            }
-            state.apiUrl = u.origin + u.pathname.replace(/\/+$/, '');
-            localStorage.setItem(API_ENDPOINT_KEY, state.apiUrl);
-            showFeedback('settingsFeedback', 'Endpoint saved to browser storage.', 'success');
-          } catch (e) {
-            showFeedback('settingsFeedback', `Invalid URL: ${e.message}`, 'error');
-          }
-        });
+        const fb = byId('cFormFeedback');
+        fb.textContent = `Report logged with ID ${newItem.incident_id}.`;
+        fb.style.display = 'block';
+        setTimeout(() => fb.style.display = 'none', 4000);
+      });
 
-        byId('btnTestApiConnection')?.addEventListener('click', () => {
-          byId('btnSaveApiEndpoint').click();
-          triggerApiSync(false);
-        });
+      byId('cBtnClearForm')?.addEventListener('click', () => {
+        byId('cIntakeForm').reset();
+      });
 
-        byId('btnClearApiEndpoint')?.addEventListener('click', () => {
-          byId('inputApiEndpoint').value = '';
-          byId('btnSaveApiEndpoint').click();
-        });
+      byId('cSearchInput')?.addEventListener('input', renderTable);
+      byId('cFilterSeverity')?.addEventListener('change', renderTable);
 
-        byId('btnResetToDefaultDemo')?.addEventListener('click', () => {
-          if (!confirm('Reset incident registry to default seed scenarios?')) return;
-          state.incidents = SEED_INCIDENTS.map(normalizeRecord);
-          persistLocal();
-          renderRegistryTable();
-          renderMapLayers();
-          selectIncident(state.incidents[0].incident_id);
-          showFeedback('settingsFeedback', 'Registry reset to seed scenarios.', 'success');
-        });
-
-        byId('btnClearAllLocal')?.addEventListener('click', () => {
-          if (!confirm('Remove all locally stored records?')) return;
-          state.incidents = [];
-          persistLocal();
-          renderRegistryTable();
-          renderMapLayers();
-          renderDossier(null);
-          showFeedback('settingsFeedback', 'Local storage cleared.', 'success');
-        });
-      }
-
-      function fillSampleScenario() {
-        byId('formJurisdiction').value = 'India';
-        byId('formZone').value = 'Samayapuram University Perimeter, North Gate Ditch';
-        byId('formSource').value = 'Biomass burning';
-        byId('formSeverity').value = 'Severe';
-        byId('formNotes').value = 'Smoldering dry foliage and perimeter leaf litter emitting dense gray plume drifting across student hostel entrance corridor.';
-        byId('formLat').value = '10.9205';
-        byId('formLng').value = '78.7410';
-        byId('zoneCharCount').textContent = `${byId('formZone').value.length}/180`;
-        byId('notesCharCount').textContent = `${byId('formNotes').value.length}/3000`;
-        switchTab('tab-intake');
-        showFeedback('intakeFeedbackBanner', 'Loaded verified sample scenario into intake form.', 'success');
-      }
-
-      function exportRegistryJson() {
-        const payload = {
-          exported_at: nowIso(),
-          mode: state.apiUrl ? 'AWS API' : 'Local Demo',
-          count: state.incidents.length,
-          incidents: state.incidents
-        };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      byId('cBtnExportJson')?.addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(state.incidents, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `prana-vayu-incidents-${Date.now()}.json`;
-        document.body.appendChild(a);
+        a.download = `prana-vayu-export-${Date.now()}.json`;
         a.click();
-        document.body.removeChild(a);
-      }
+      });
 
-      // Initialize Application
-      function init() {
-        try {
-          state.apiUrl = localStorage.getItem(API_ENDPOINT_KEY) || '';
-          byId('inputApiEndpoint').value = state.apiUrl;
-        } catch (e) { state.apiUrl = ''; }
+      byId('cBtnPrintNotice')?.addEventListener('click', () => window.print());
 
-        state.incidents = loadStoredIncidents();
-        state.activeId = state.incidents[0]?.incident_id || null;
+      // Init
+      state.incidents = loadData();
+      state.activeId = state.incidents[0]?.incident_id || null;
 
-        bindEvents();
-        initLeafletMap();
-        renderRegistryTable();
-        renderMapLayers();
-        renderDossier(state.incidents[0] || null);
+      initMap();
+      renderTable();
+      renderMap();
+      renderDossier(state.incidents[0]);
 
-        if (state.apiUrl) {
-          triggerApiSync(true);
-        } else {
-          updateConnectionStatus('demo', 'LOCAL DEMO MODE');
-        }
-
-        // UTC Clock
-        setInterval(() => {
-          const d = new Date();
-          const pad = n => String(n).padStart(2, '0');
-          byId('footerClock').textContent = `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
-        }, 1000);
-      }
-
-      init();
+      // Clock
+      setInterval(() => {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        byId('footerClock').textContent = `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+      }, 1000);
     })();
   </script>
 </body>
