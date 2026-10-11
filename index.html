@@ -1,0 +1,2415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRANA-VAYU (प्राण-वायु) | Environmental Operations Console</title>
+  <meta name="description" content="Hyper-local micro-climate environmental operations console for the Bharat Builds Environmental Hacks Air Track. Tier 1 Cadet Spotter, Tier 2 Institutional Countermeasures, Tier 3 Section 19(5) Statutory Legal Abatement Notice.">
+
+  <!-- Operational Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS for Tactical Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <style>
+    /* ==========================================================================
+       PRANA-VAYU DESIGN SYSTEM // ANTI-VIBE-CODING OPERATIONAL HUD SPEC
+       ========================================================================== */
+    :root {
+      --bg-void: #05070a;
+      --bg-panel: #0b0f16;
+      --bg-subpanel: #111722;
+      --bg-hover: #192233;
+      --border-dim: #1e293b;
+      --border-bright: #334155;
+      --border-accent: #38bdf8;
+      
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      /* Tactical Alert Colors */
+      --color-critical: #ef4444;
+      --color-critical-glow: rgba(239, 68, 68, 0.25);
+      --color-hazard: #f59e0b;
+      --color-hazard-glow: rgba(245, 158, 11, 0.2);
+      --color-emerald: #10b981;
+      --color-emerald-glow: rgba(16, 185, 129, 0.2);
+      --color-vayu-cyan: #06b6d4;
+      --color-vayu-glow: rgba(6, 182, 212, 0.25);
+      --color-akasha-violet: #8b5cf6;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-vedic: 'Cinzel', serif;
+      
+      --shadow-hud: 0 4px 20px -2px rgba(0, 0, 0, 0.7);
+      --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Scanline & Graticule Ambient Overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.005), rgba(0, 0, 255, 0.01));
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.45;
+    }
+
+    /* ==========================================================================
+       TOP OPERATIONAL HUD BAR
+       ========================================================================== */
+    .hud-header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .brand-cluster {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-symbol {
+      width: 36px;
+      height: 36px;
+      background: radial-gradient(circle, #0e2e42 0%, #08111d 100%);
+      border: 1px solid var(--color-vayu-cyan);
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 12px var(--color-vayu-glow);
+    }
+
+    .brand-symbol svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: var(--color-vayu-cyan);
+      stroke-width: 2;
+    }
+
+    .brand-title h1 {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title h1 .sanskrit {
+      font-family: var(--font-vedic);
+      color: var(--color-vayu-cyan);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .brand-title p {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* Pancha Bhoota Telemetry Strip */
+    .pancha-bhoota-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-subpanel);
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border-dim);
+    }
+
+    .bhoota-node {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .bhoota-node.prithvi { color: #a3e635; border-left: 2px solid #a3e635; }
+    .bhoota-node.jala    { color: #38bdf8; border-left: 2px solid #38bdf8; }
+    .bhoota-node.agni    { color: #f97316; border-left: 2px solid #f97316; }
+    .bhoota-node.vayu    { color: #06b6d4; border-left: 2px solid #06b6d4; background: rgba(6, 182, 212, 0.1); font-weight: 700; }
+    .bhoota-node.akasha  { color: #c084fc; border-left: 2px solid #c084fc; }
+
+    /* Biological Criticality Clock */
+    .criticality-metric {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+
+    .criticality-pulse {
+      width: 8px;
+      height: 8px;
+      background: var(--color-critical);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--color-critical);
+      animation: pulseAlert 1.2s infinite;
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .criticality-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.1;
+    }
+
+    .criticality-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: #fca5a5;
+    }
+
+    /* Cloud & Telemetry Badges */
+    .hud-meta-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tactical-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--border-dim);
+      background: var(--bg-subpanel);
+      color: var(--text-muted);
+    }
+
+    .badge-live {
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+
+    .badge-live::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--color-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--color-emerald);
+    }
+
+    .btn-tactical {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-subpanel);
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-tactical:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-accent);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+    }
+
+    .btn-tactical.primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+
+    .btn-tactical.primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      box-shadow: 0 0 12px var(--color-vayu-glow);
+    }
+
+    .btn-tactical.hazard {
+      background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+      border-color: #ef4444;
+      color: #fff;
+    }
+
+    /* ==========================================================================
+       MAIN OPERATIONAL WORKSPACE LAYOUT (3 TIER WORKSPACE)
+       ========================================================================== */
+    .operations-shell {
+      display: grid;
+      grid-template-columns: 420px 1fr 400px;
+      flex: 1;
+      min-height: calc(100vh - 53px - 180px);
+      background: var(--bg-void);
+      gap: 1px;
+      background-color: var(--border-dim);
+    }
+
+    @media (max-width: 1400px) {
+      .operations-shell {
+        grid-template-columns: 380px 1fr;
+      }
+      .panel-right {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .operations-shell {
+        grid-template-columns: 1fr;
+      }
+      .panel-right {
+        grid-column: span 1;
+      }
+    }
+
+    /* Sub-Panels */
+    .ops-panel {
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      max-height: calc(100vh - 53px - 180px);
+    }
+
+    .panel-header {
+      background: var(--bg-subpanel);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .panel-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.75px;
+    }
+
+    .panel-header-title .tier-tag {
+      padding: 2px 6px;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid var(--color-vayu-cyan);
+      color: var(--color-vayu-cyan);
+      border-radius: 3px;
+      font-size: 10px;
+    }
+
+    .panel-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ==========================================================================
+       TIER NAVIGATION TABS (Anti-Vibe Tactical Switching)
+       ========================================================================== */
+    .tier-tab-selector {
+      display: flex;
+      background: var(--bg-subpanel);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 4px 8px 0 8px;
+      gap: 4px;
+    }
+
+    .tier-tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+      text-align: center;
+      transition: all var(--transition-fast);
+      text-transform: uppercase;
+    }
+
+    .tier-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tier-tab-btn.active {
+      color: var(--color-vayu-cyan);
+      background: var(--bg-panel);
+      border-color: var(--border-dim);
+      border-bottom: 2px solid var(--color-vayu-cyan);
+      font-weight: 700;
+    }
+
+    /* ==========================================================================
+       FORM CONTROLS & TACTICAL INPUTS (TIER 1 LOGGER)
+       ========================================================================== */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-label .hint {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: var(--bg-subpanel);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 7px 10px;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      transition: border-color var(--transition-fast);
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--color-vayu-cyan);
+      box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+    }
+
+    .coord-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 6px;
+      align-items: end;
+    }
+
+    /* Exposure Calculator Widget */
+    .exposure-formula-card {
+      background: radial-gradient(circle at 10% 10%, #101b2b 0%, #0b111a 100%);
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .formula-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-vayu-cyan);
+      font-weight: 700;
+    }
+
+    .formula-math {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 8px;
+      border-radius: 4px;
+      border-left: 2px solid var(--color-vayu-cyan);
+    }
+
+    .aidei-score-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 8px 12px;
+      border-radius: 4px;
+    }
+
+    .aidei-val {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--color-critical);
+    }
+
+    .macro-vs-micro-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .comparison-card {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-dim);
+      background: var(--bg-subpanel);
+    }
+
+    .comparison-card.macro {
+      border-left: 3px solid var(--color-hazard);
+    }
+
+    .comparison-card.micro {
+      border-left: 3px solid var(--color-critical);
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .comparison-label {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .comparison-val {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      margin: 2px 0;
+    }
+
+    .comparison-val.warn { color: var(--color-hazard); }
+    .comparison-val.danger { color: var(--color-critical); }
+
+    .comparison-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       MAP PANEL & TACTICAL RADAR (CENTER VIEW)
+       ========================================================================== */
+    .map-shell {
+      position: relative;
+      background: #000;
+      height: 100%;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #tacticalMap {
+      flex: 1;
+      width: 100%;
+      background: #080c14;
+      z-index: 1;
+    }
+
+    .map-floating-hud {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .map-tool-pill {
+      background: rgba(11, 15, 22, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-bright);
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-hud);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .map-presets {
+      position: absolute;
+      bottom: 24px;
+      left: 14px;
+      z-index: 500;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .map-preset-btn {
+      background: rgba(17, 23, 34, 0.88);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .map-preset-btn:hover, .map-preset-btn.active {
+      background: var(--color-vayu-cyan);
+      color: #000;
+      border-color: #fff;
+      font-weight: 700;
+    }
+
+    .map-legend {
+      position: absolute;
+      bottom: 24px;
+      right: 14px;
+      z-index: 500;
+      background: rgba(11, 15, 22, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-dim);
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Custom Leaflet Dark Marker styles */
+    .leaflet-popup-content-wrapper {
+      background: var(--bg-panel) !important;
+      color: var(--text-main) !important;
+      border: 1px solid var(--border-accent) !important;
+      border-radius: 6px !important;
+      font-family: var(--font-sans) !important;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.8) !important;
+    }
+
+    .leaflet-popup-tip {
+      background: var(--bg-panel) !important;
+      border: 1px solid var(--border-accent) !important;
+    }
+
+    /* ==========================================================================
+       RIGHT DECK: TIER 2 & TIER 3 INSPECTOR PANELS
+       ========================================================================== */
+    .deck-section-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--color-vayu-cyan);
+      border-bottom: 1px solid var(--border-dim);
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Tier 2: 24h Countermeasure Action List */
+    .countermeasure-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cm-card {
+      background: var(--bg-subpanel);
+      border: 1px solid var(--border-dim);
+      border-left: 3px solid var(--color-emerald);
+      border-radius: 4px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cm-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cm-name {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .cm-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 2px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      font-family: var(--font-mono);
+    }
+
+    .cm-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .cm-action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border-dim);
+    }
+
+    /* Botanical Engineering Species Cards */
+    .botanical-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .species-card {
+      background: var(--bg-subpanel);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .species-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .species-common {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #a7f3d0;
+    }
+
+    .species-scientific {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .species-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.25);
+      padding: 4px 6px;
+      border-radius: 3px;
+    }
+
+    /* ==========================================================================
+       TIER 3: STATUTORY LEGAL NOTICE LETTERHEAD PREVIEW
+       ========================================================================== */
+    .notice-preview-shell {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 16px;
+      font-family: 'Times New Roman', Times, serif;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 520px;
+      overflow-y: auto;
+    }
+
+    .notice-emblem-bar {
+      text-align: center;
+      border-bottom: 2px double #0f172a;
+      padding-bottom: 8px;
+    }
+
+    .notice-emblem-bar h2 {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      color: #000;
+    }
+
+    .notice-emblem-bar p {
+      font-size: 10px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .notice-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      font-size: 10px;
+      line-height: 1.4;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+    }
+
+    .notice-legal-body {
+      font-size: 10.5px;
+      line-height: 1.45;
+      text-align: justify;
+    }
+
+    .notice-legal-body p {
+      margin-bottom: 6px;
+    }
+
+    .notice-citation-pill {
+      font-weight: bold;
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+
+    .notice-evidence-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5px;
+      margin: 6px 0;
+    }
+
+    .notice-evidence-table th, .notice-evidence-table td {
+      border: 1px solid #94a3b8;
+      padding: 3px 6px;
+      text-align: left;
+    }
+
+    .notice-evidence-table th {
+      background: #e2e8f0;
+      font-weight: bold;
+    }
+
+    .notice-signatures {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #cbd5e1;
+      font-size: 9.5px;
+    }
+
+    /* ==========================================================================
+       BOTTOM TELEMETRY DECK: DYNAMODB TABLE & AWS ARCHITECTURE
+       ========================================================================== */
+    .bottom-telemetry-deck {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-dim);
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 180px;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+    }
+
+    .deck-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .deck-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .deck-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .deck-tab-btn.active {
+      background: var(--bg-subpanel);
+      color: var(--color-vayu-cyan);
+      border: 1px solid var(--border-dim);
+    }
+
+    .table-container {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      background: var(--bg-subpanel);
+    }
+
+    .dynamo-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: left;
+    }
+
+    .dynamo-table th {
+      background: #090d14;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      position: sticky;
+      top: 0;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    .dynamo-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    .dynamo-table tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-pill.critical { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
+    .status-pill.active   { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid #f59e0b; }
+    .status-pill.abated   { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid #10b981; }
+
+    /* ==========================================================================
+       MODAL ARCHITECTURE DIALOG (AWS BEDROCK & CLOUD PIPELINE)
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: none;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: grid;
+    }
+
+    .modal-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-accent);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 820px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 0 40px rgba(6, 182, 212, 0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      background: var(--bg-subpanel);
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Bedrock Inference Pipeline Flow */
+    .arch-flow-diagram {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: var(--bg-void);
+      padding: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-dim);
+    }
+
+    .arch-node {
+      background: var(--bg-subpanel);
+      border: 1px solid var(--border-dim);
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .arch-node .node-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-vayu-cyan);
+      margin-bottom: 4px;
+    }
+
+    .arch-node .node-sub {
+      font-size: 9.5px;
+      color: var(--text-dim);
+    }
+
+    /* ==========================================================================
+       PRINT-NATIVE LEGAL NOTICE ENGINE (@media print)
+       ========================================================================== */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+
+      /* Hide entire interactive HUD and screens */
+      .hud-header,
+      .operations-shell,
+      .bottom-telemetry-deck,
+      .modal-overlay,
+      body::before {
+        display: none !important;
+      }
+
+      /* Dedicated Print Legal Document */
+      #printNoticeTarget {
+        display: block !important;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        background: #fff;
+        padding: 40px;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.4;
+        color: #000;
+      }
+
+      .print-double-border {
+        border: 3px double #000;
+        padding: 24px;
+        min-height: 94vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .print-watermark {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-35deg);
+        font-size: 52pt;
+        color: rgba(0, 0, 0, 0.04);
+        font-weight: 900;
+        text-transform: uppercase;
+        pointer-events: none;
+        z-index: 0;
+        white-space: nowrap;
+      }
+    }
+
+    #printNoticeTarget {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       1. TOP OPERATIONAL HUD BAR
+       ========================================================================== -->
+  <header class="hud-header">
+    <div class="brand-cluster">
+      <div class="brand-symbol">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" opacity="0.3"/>
+          <path d="M4 12c2.5-3 5.5-3 8 0s5.5 3 8 0"/>
+          <path d="M4 8c2.5-3 5.5-3 8 0s5.5 3 8 0"/>
+          <path d="M4 16c2.5-3 5.5-3 8 0s5.5 3 8 0"/>
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h1>PRANA-VAYU <span class="sanskrit">प्राण-वायु</span></h1>
+        <p>Micro-Climate Environmental Operations Console // Bharat Builds Air Track</p>
+      </div>
+    </div>
+
+    <!-- Vedic Pancha Bhoota Telemetry Indicator -->
+    <div class="pancha-bhoota-strip">
+      <div class="bhoota-node prithvi" title="Prithvi (Earth / Particulate Sink)">Prithvi: Sink</div>
+      <div class="bhoota-node jala" title="Jala (Water / Aqueous Suppression)">Jala: Douse</div>
+      <div class="bhoota-node agni" title="Agni (Fire / Micro-Combustion)">Agni: Plume</div>
+      <div class="bhoota-node vayu" title="Vayu (Air / Carrier of Prana)">Vayu: Life-Force</div>
+      <div class="bhoota-node akasha" title="Akasha (Space / Boundary Layer)">Akasha: Inversion</div>
+    </div>
+
+    <!-- Acute 3-Minute Biological Criticality Rule -->
+    <div class="criticality-metric" title="Biological Rule: Survived weeks without food, days without water, hours without fire, but < 3 minutes without clean Vayu.">
+      <div class="criticality-pulse"></div>
+      <div class="criticality-label">
+        BIOLOGICAL CRITICALITY<br>
+        <span style="color:var(--text-dim);font-size:9px;">ACUTE VIOLATION RULE</span>
+      </div>
+      <div class="criticality-value" id="biologicalTimer">180s TO IRREVERSIBLE DAMAGE</div>
+    </div>
+
+    <!-- Operational Telemetry Badges & Buttons -->
+    <div class="hud-meta-actions">
+      <div class="tactical-badge badge-live" title="Live Amazon DynamoDB Synchronization">
+        DYNAMODB: CONNECTED
+      </div>
+      <div class="tactical-badge" style="border-color:#38bdf8;color:#38bdf8;" title="Amazon Bedrock Claude 3.5 Sonnet Integration">
+        BEDROCK: CLAUDE 3.5
+      </div>
+      <button class="btn-tactical" id="soundToggleBtn" onclick="toggleTacticalAudio()" title="Toggle Web Audio Acoustic Radar">
+        <span id="audioIcon">🔊</span> SOUND
+      </button>
+      <button class="btn-tactical primary" onclick="openArchitectureModal()" title="View AWS Cloud Deployment Architecture">
+        AWS ARCHITECTURE
+      </button>
+      <button class="btn-tactical hazard" onclick="triggerOfficialNoticePrint()" title="Generate Print-Ready Section 19(5) Statutory Abatement Notice">
+        PRINT STATUTORY NOTICE
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       2. THREE-TIER MAIN OPERATIONAL WORKSPACE
+       ========================================================================== -->
+  <main class="operations-shell">
+
+    <!-- LEFT COLUMN: TIER 1 CADET SPOTTER & INCIDENT LOGGER -->
+    <section class="ops-panel panel-left">
+      <div class="tier-tab-selector">
+        <button class="tier-tab-btn active" id="tabTier1" onclick="switchLeftTab('tier1')">Tier 1: Spotter Log</button>
+        <button class="tier-tab-btn" id="tabAidei" onclick="switchLeftTab('aidei')">Exposure Math</button>
+        <button class="tier-tab-btn" id="tabFilter" onclick="switchLeftTab('filter')">Plume Registry</button>
+      </div>
+
+      <div class="panel-header">
+        <div class="panel-header-title">
+          <span class="tier-tag">TIER 1</span>
+          Field Observer Console
+        </div>
+        <span class="tactical-badge" id="observerBadge">NSS-DELHI // CADET #108</span>
+      </div>
+
+      <div class="panel-body" id="tier1Body">
+        <div class="form-group">
+          <label class="form-label">
+            Observer Unit & Badge
+            <span class="hint">NSS / NCC / Student Spotter</span>
+          </label>
+          <select class="form-select" id="spotterUnit">
+            <option value="NCC_7_DEL_BN">NCC 7 Delhi Battalion (Cadet Spotter)</option>
+            <option value="NSS_UNIT_04">NSS University Unit IV (Environmental Taskforce)</option>
+            <option value="CAMPUS_MARSHAL">Campus Security & Gate Marshal</option>
+            <option value="STUDENT_COUNCIL">Student Eco-Council Volunteer</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Acute Micro-Combustion Source
+            <span class="hint">Hyper-Local Point Source</span>
+          </label>
+          <select class="form-select" id="sourceType" onchange="recalculateExposure()">
+            <option value="LEAF_BURNING">Biomass & Leaf Burning (Perimeter Smolder)</option>
+            <option value="TRANSIT_BUS_IDLE">School Gate Transit Diesel Bus Idling (NO2 + BC)</option>
+            <option value="CONSTRUCTION_SILICA">Unmitigated Construction Silica & Cutting Dust</option>
+            <option value="DG_SET_EXHAUST">Heavy DG Set Unscrubbed Diesel Generator Bypass</option>
+            <option value="PLASTIC_MSW_FIRE">Municipal Solid Waste (MSW) / Plastic Open Fire</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Geographic Coordinates (WGS-84)
+            <span class="hint">Click map or use GPS</span>
+          </label>
+          <div class="coord-grid">
+            <input type="text" class="form-input" id="inputLat" value="28.6924" placeholder="Lat (e.g. 28.6924)">
+            <input type="text" class="form-input" id="inputLng" value="77.2118" placeholder="Lng (e.g. 77.2118)">
+            <button class="btn-tactical" onclick="fetchLiveGPS()" title="Fetch Current Hardware GPS">GPS</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Pedestrian & Student Density at Risk
+            <span class="hint">Direct Inhaling Population</span>
+          </label>
+          <select class="form-select" id="pedestrianDensity" onchange="recalculateExposure()">
+            <option value="LOW">Low (< 50 Students / Pedestrians)</option>
+            <option value="MEDIUM" selected>Medium (50 - 200 Students at School Gate/Bus Choke)</option>
+            <option value="CRITICAL">Critical (> 200 Students in Immediate Plume Path)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Wind Bearing & Plume Opacity
+            <span class="hint">Ringelmann Scale & Vector</span>
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <select class="form-select" id="windDirection" onchange="recalculateExposure()">
+              <option value="0">North (0° - Lofting S)</option>
+              <option value="45">North-East (45°)</option>
+              <option value="90">East (90° - Lofting W)</option>
+              <option value="135">South-East (135°)</option>
+              <option value="180">South (180°)</option>
+              <option value="225">South-West (225°)</option>
+              <option value="270" selected>West (270° - Lofting E)</option>
+              <option value="315">North-West (315°)</option>
+            </select>
+            <select class="form-select" id="plumeOpacity" onchange="recalculateExposure()">
+              <option value="1">Opacity 20% (Light Haze)</option>
+              <option value="2">Opacity 40% (Moderate Plume)</option>
+              <option value="3" selected>Opacity 60% (Heavy Smolder)</option>
+              <option value="4">Opacity 80% (Dense Toxic Smoke)</option>
+              <option value="5">Opacity 100% (Black Soot Opaque)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Calculated Exposure Index (AIDEI) -->
+        <div class="exposure-formula-card">
+          <div class="formula-header">
+            <span>AIDEI DOSE MODEL</span>
+            <span id="formulaStatus">ACUTE VIOLATION</span>
+          </div>
+          <div class="formula-math">
+            Dose = C<sub>micro</sub> (µg/m³) × t (min) × V<sub>e</sub> (18 L/min) × P<sub>exposed</sub>
+          </div>
+          <div class="aidei-score-display">
+            <div>
+              <div style="font-size:9.5px;color:var(--text-dim);font-family:var(--font-mono);">INHALED TOXIC LOAD INDEX</div>
+              <div class="aidei-val" id="aideiScore">842.6 kUnits</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:9.5px;color:var(--text-dim);font-family:var(--font-mono);">EST. MICRO-AQI PM2.5</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--color-critical);" id="microAqiVal">680 µg/m³</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CAAQMS Macro Blindspot Contrast -->
+        <div class="macro-vs-micro-box">
+          <div class="comparison-card macro">
+            <div class="comparison-label">Govt CAAQMS (15 km)</div>
+            <div class="comparison-val warn">142 AQI</div>
+            <div class="comparison-sub">Moderate / Complacent</div>
+          </div>
+          <div class="comparison-card micro">
+            <div class="comparison-label">Prana-Vayu Micro-Plume</div>
+            <div class="comparison-val danger" id="cardMicroAqi">680 µg/m³</div>
+            <div class="comparison-sub" id="cardMicroDelta">+378% Lethal Spike</div>
+          </div>
+        </div>
+
+        <button class="btn-tactical hazard" style="width:100%;padding:10px;font-size:12px;margin-top:4px;" onclick="logAcuteIncident()">
+          LOG ACUTE INCIDENT & SYNC DYNAMODB
+        </button>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: INTERACTIVE TACTICAL LEAFLET MAP -->
+    <section class="map-shell">
+      <div id="tacticalMap"></div>
+
+      <!-- Floating Map Telemetry Pill -->
+      <div class="map-floating-hud">
+        <div class="map-tool-pill">
+          <span style="color:var(--color-vayu-cyan);">RADAR:</span>
+          <span id="mapCenterCoords">28.6924° N, 77.2118° E</span>
+        </div>
+        <div class="map-tool-pill" style="border-color:rgba(239, 68, 68, 0.4);">
+          <span style="color:var(--color-critical);">ACTIVE PLUMES:</span>
+          <span id="activePlumeCount">4 MONITORED</span>
+        </div>
+      </div>
+
+      <!-- Preset Regional Focal Anchors -->
+      <div class="map-presets">
+        <button class="map-preset-btn active" onclick="jumpMapPreset(28.6924, 77.2118, 'DU North Campus, Delhi')">DU North Campus</button>
+        <button class="map-preset-btn" onclick="jumpMapPreset(28.5450, 77.1926, 'IIT Delhi, Hauz Khas')">IIT Delhi</button>
+        <button class="map-preset-btn" onclick="jumpMapPreset(13.0219, 77.5671, 'IISc Bengaluru, Mathikere')">IISc Bengaluru</button>
+        <button class="map-preset-btn" onclick="jumpMapPreset(19.1334, 72.9133, 'IIT Bombay, Powai')">IIT Bombay</button>
+        <button class="map-preset-btn" onclick="jumpMapPreset(17.4168, 78.4975, 'Osmania University, Hyderabad')">Osmania Hyd</button>
+      </div>
+
+      <!-- Tactical Map Legend -->
+      <div class="map-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#ef4444;box-shadow:0 0 6px #ef4444;"></div>
+          <span>Micro-Plume Point Source (Acute)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:rgba(239, 68, 68, 0.35);border:1px dashed #ef4444;"></div>
+          <span>Gaussian Dispersion Cone (Downwind)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#f59e0b;"></div>
+          <span>Govt CAAQMS Station (15 km Macro)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#10b981;"></div>
+          <span>Botanical Buffer / Suppressed Zone</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: TIER 2 INSTITUTIONAL & TIER 3 STATUTORY REGULATOR -->
+    <section class="ops-panel panel-right">
+      <div class="tier-tab-selector">
+        <button class="tier-tab-btn active" id="tabTier2" onclick="switchRightTab('tier2')">Tier 2: Institutional</button>
+        <button class="tier-tab-btn" id="tabTier3" onclick="switchRightTab('tier3')">Tier 3: Statutory Legal</button>
+        <button class="tier-tab-btn" id="tabBotanical" onclick="switchRightTab('botanical')">Botanical Matrix</button>
+      </div>
+
+      <!-- TIER 2 BODY: INSTITUTIONAL 24-HOUR PHYSICAL COUNTERMEASURES -->
+      <div class="panel-body" id="tier2View">
+        <div class="panel-header" style="margin:-14px -14px 10px -14px;position:relative;">
+          <div class="panel-header-title">
+            <span class="tier-tag" style="border-color:#10b981;color:#10b981;background:rgba(16,185,129,0.1);">TIER 2</span>
+            Institutional Operator Deck
+          </div>
+          <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">REGISTRAR / PRINCIPAL</span>
+        </div>
+
+        <div class="deck-section-title">
+          <span>24-Hour Immediate Countermeasures</span>
+          <span style="color:var(--color-critical);">MANDATORY PROTOCOL</span>
+        </div>
+
+        <div class="countermeasure-list">
+          <div class="cm-card">
+            <div class="cm-header">
+              <span class="cm-name">1. Direct Aqueous Hose Suppression</span>
+              <span class="cm-badge">T+15 MIN PROTOCOL</span>
+            </div>
+            <p class="cm-desc">
+              Deploy campus groundskeeping fire hoses or pressurized misting nozzles directly onto smoldering perimeter biomass. Jala (water) extinguishes thermal updraft, encapsulating coarse and fine particulates.
+            </p>
+            <div class="cm-action-row">
+              <span style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">Target: 85% Plume Quench</span>
+              <button class="btn-tactical primary" onclick="markCountermeasureDone(this)">DISPATCH GROUND HOSE</button>
+            </div>
+          </div>
+
+          <div class="cm-card">
+            <div class="cm-header">
+              <span class="cm-name">2. Pedestrian Detour Barrier Grid</span>
+              <span class="cm-badge">IMMEDIATE CROWD REROUTE</span>
+            </div>
+            <p class="cm-desc">
+              Erect physical retractable barriers and deploy NCC marshals to divert student foot traffic 120 meters upwind of the downwind dispersion cone at the school perimeter gate.
+            </p>
+            <div class="cm-action-row">
+              <span style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">Divert: 200+ Students</span>
+              <button class="btn-tactical primary" onclick="markCountermeasureDone(this)">DEPLOY BARRIER CORDON</button>
+            </div>
+          </div>
+
+          <div class="cm-card">
+            <div class="cm-header">
+              <span class="cm-name">3. Indoor Assembly & Training Shift</span>
+              <span class="cm-badge">EXERTION SUSPENSION</span>
+            </div>
+            <p class="cm-desc">
+              Halt all outdoor morning physical drill, parade, and school assembly. Deep biological ventilation rate during exercise multiplies inhaled particulate deposition in juvenile alveolar tissue.
+            </p>
+            <div class="cm-action-row">
+              <span style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">Ventilation: 18 -> 6 L/min</span>
+              <button class="btn-tactical primary" onclick="markCountermeasureDone(this)">ISSUE DRILL CEASE-ORDER</button>
+            </div>
+          </div>
+
+          <div class="cm-card">
+            <div class="cm-header">
+              <span class="cm-name">4. HVAC Positive Pressure Sealing</span>
+              <span class="cm-badge">INTERNAL AIR DEFENSE</span>
+            </div>
+            <p class="cm-desc">
+              Throttle fresh-air intakes on eastern campus facade facing the combustion plume; switch academic AHUs to 100% recirculation mode with secondary MERV-13 pre-filtration activated.
+            </p>
+            <div class="cm-action-row">
+              <span style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">Air Exchange: Throttled</span>
+              <button class="btn-tactical primary" onclick="markCountermeasureDone(this)">SEAL AIR INTAKES</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER 3 BODY: STATUTORY LEGAL ABATEMENT NOTICE (SECTION 19(5) OF AIR ACT 1981) -->
+      <div class="panel-body" id="tier3View" style="display:none;">
+        <div class="panel-header" style="margin:-14px -14px 10px -14px;position:relative;">
+          <div class="panel-header-title">
+            <span class="tier-tag" style="border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,0.1);">TIER 3</span>
+            Statutory Legal Engine
+          </div>
+          <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">AIR ACT 1981 // SEC 19(5)</span>
+        </div>
+
+        <!-- Live Letterhead Document Preview -->
+        <div class="notice-preview-shell" id="screenNoticeCard">
+          <div class="notice-emblem-bar">
+            <h2>STATUTORY NOTICE OF AIR POLLUTION EMERGENCY</h2>
+            <p>ISSUED PURSUANT TO SECTION 19(5) READ WITH SECTION 31A, AIR (PREVENTION AND CONTROL OF POLLUTION) ACT, 1981</p>
+          </div>
+
+          <div class="notice-meta-grid">
+            <div>
+              <strong>NOTICE REF:</strong> <span id="noticeRefId">PV-LEGAL/2026/SEC19-5/DEL-8402</span><br>
+              <strong>DATE OF SERVING:</strong> <span id="noticeDate">11 OCTOBER 2026</span><br>
+              <strong>JURISDICTION:</strong> National Capital Territory / Delhi NCR
+            </div>
+            <div style="text-align:right;">
+              <strong>COMPLIANCE WINDOW:</strong> 48 HOURS MANDATORY<br>
+              <strong>PENAL PROVISION:</strong> Section 37/38 (Rigorous Imprisonment)<br>
+              <strong>STATUS:</strong> FORMAL LEGAL INJUNCTION
+            </div>
+          </div>
+
+          <div class="notice-legal-body">
+            <p>
+              <strong>TO:</strong> The Member Secretary, State Pollution Control Board & The Municipal Ward Executive Commissioner.
+            </p>
+            <p>
+              <strong>TAKE NOTICE:</strong> Field surveillance telemetry logged by the Prana-Vayu Environmental Taskforce has confirmed an acute, non-permitted micro-combustion event violating clean air standards within an active educational/pedestrian breathing zone.
+            </p>
+            <p>
+              Pursuant to the fundamental right to life enshrined under <strong>Article 21 of the Constitution of India</strong> (affirmed in <em>Subhash Kumar v. State of Bihar, 1991</em>), clean air is a non-derogable biological necessity. Biological death occurs in under 180 seconds in the absence of clean Vayu.
+            </p>
+
+            <table class="notice-evidence-table">
+              <thead>
+                <tr>
+                  <th>EVIDENCE PARAMETER</th>
+                  <th>TELEMETRY DATA LOG</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Geotagged Locus</td>
+                  <td id="tableNoticeCoords">28.6924° N, 77.2118° E (Campus Perimeter Gate #3)</td>
+                </tr>
+                <tr>
+                  <td>Violation Classification</td>
+                  <td id="tableNoticeSource">Acute Biomass & Leaf Smoldering (Section 19(5) Prohibition)</td>
+                </tr>
+                <tr>
+                  <td>Exposed Pediatric/Pupil Density</td>
+                  <td id="tableNoticeDensity">Medium (~140 students in direct breathing plume)</td>
+                </tr>
+                <tr>
+                  <td>Localized Particulate Concentration</td>
+                  <td id="tableNoticeAqi">680 µg/m³ PM2.5 (Severe+ Acute Toxic Exceedance)</td>
+                </tr>
+                <tr>
+                  <td>Macro CAAQMS Station Divergence</td>
+                  <td>142 AQI (14.8 km distant CAAQMS failed to detect lethal plume)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p>
+              <strong>STATUTORY LEGAL GROUNDING:</strong>
+              Under <span class="notice-citation-pill">Section 19(5) of the Air Act, 1981</span>, no person shall burn in any air pollution control area any material which is likely to cause air pollution. Under <span class="notice-citation-pill">Section 31A</span>, the Board is empowered to issue directions for closure, prohibition, or regulation of any operation. Failure to comply constitutes a cognizable penal offense under <span class="notice-citation-pill">Section 37</span> punishable with imprisonment for a term not less than one year and six months which may extend to six years with fine.
+            </p>
+            <p>
+              International standards cited for statutory guidance: <strong>US Clean Air Act (42 U.S.C. § 7401)</strong>, <strong>UK Environment Act 2021</strong>, <strong>EU Directive 2008/50/EC</strong>, and <strong>WHO 2021 Air Quality Guidelines (PM2.5 24h limit: 15 µg/m³)</strong>.
+            </p>
+          </div>
+
+          <div class="notice-signatures">
+            <div>
+              <strong>ISSUED BY:</strong><br>
+              Field Observer & Cadet Rapporteur<br>
+              Prana-Vayu Air Action Taskforce
+            </div>
+            <div style="text-align:right;">
+              <strong>COUNTERSIGNED:</strong><br>
+              Statutory Operations Rapporteur<br>
+              Bharat Builds Environmental Track
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+          <button class="btn-tactical hazard" onclick="triggerOfficialNoticePrint()">
+            🖨️ PRINT FORMAL NOTICE
+          </button>
+          <button class="btn-tactical primary" onclick="copyNoticeMarkdown()">
+            📋 COPY LEGAL MEMO
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTANICAL ENGINEERING & PHYTOREMEDIATION MATRIX -->
+      <div class="panel-body" id="botanicalView" style="display:none;">
+        <div class="panel-header" style="margin:-14px -14px 10px -14px;position:relative;">
+          <div class="panel-header-title">
+            <span class="tier-tag" style="border-color:#38bdf8;color:#38bdf8;background:rgba(56,189,248,0.1);">TIER 2+</span>
+            Botanical Engineering Matrix
+          </div>
+          <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">PHYTOREMEDIATION</span>
+        </div>
+
+        <div class="deck-section-title">
+          <span>High-APTI Native Canopy Species</span>
+          <span style="color:#6ee7b7;">DUST CAPTURE INDEX</span>
+        </div>
+
+        <div class="botanical-grid">
+          <div class="species-card">
+            <div class="species-header">
+              <span class="species-common">Peepal (Sacred Fig)</span>
+              <span class="species-scientific">Ficus religiosa</span>
+            </div>
+            <div class="species-metrics">
+              <span>APTI: 22.4 (High)</span>
+              <span>Capture: 14.2 g/m² leaf area</span>
+              <span>Trichomes: Dense</span>
+              <span>Canopy: Multi-tier dense</span>
+            </div>
+            <p style="font-size:10.5px;color:var(--text-muted);">
+              Superior micro-turbulence generator and coarse/fine particulate capture. High stomatal resilience to sulfur dioxide and volatile hydrocarbons.
+            </p>
+          </div>
+
+          <div class="species-card">
+            <div class="species-header">
+              <span class="species-common">Neem</span>
+              <span class="species-scientific">Azadirachta indica</span>
+            </div>
+            <div class="species-metrics">
+              <span>APTI: 24.8 (Very High)</span>
+              <span>Capture: 11.6 g/m² leaf area</span>
+              <span>Wax Layer: Thick cuticle</span>
+              <span>Tolerant: Diesel soot</span>
+            </div>
+            <p style="font-size:10.5px;color:var(--text-muted);">
+              Exceptional tolerance to chronic traffic nitrogen dioxide and diesel exhaust particles (DEP). Traps carbonaceous aggregates on leaf surfaces.
+            </p>
+          </div>
+
+          <div class="species-card">
+            <div class="species-header">
+              <span class="species-common">Kaner</span>
+              <span class="species-scientific">Nerium oleander</span>
+            </div>
+            <div class="species-metrics">
+              <span>APTI: 21.0 (Robust)</span>
+              <span>Capture: 9.8 g/m² leaf area</span>
+              <span>Form: Dense Road Shrub</span>
+              <span>Height: Low Exhaust Layer</span>
+            </div>
+            <p style="font-size:10.5px;color:var(--text-muted);">
+              Crucial 1.5m to 3m low-level barrier that intercepts tailpipe exhaust and bus idling emissions directly before vertical lofting.
+            </p>
+          </div>
+
+          <div class="species-card">
+            <div class="species-header">
+              <span class="species-common">Bougainvillea</span>
+              <span class="species-scientific">Bougainvillea spectabilis</span>
+            </div>
+            <div class="species-metrics">
+              <span>APTI: 20.2 (High)</span>
+              <span>Capture: 8.5 g/m²</span>
+              <span>Growth: Dense Perimeter Wall</span>
+              <span>Sink: Road Silica Dust</span>
+            </div>
+            <p style="font-size:10.5px;color:var(--text-muted);">
+              High foliage density vine suitable for campus fences, creating a physical tortuous path that deposits resuspended road silica dust.
+            </p>
+          </div>
+        </div>
+
+        <div class="exposure-formula-card" style="margin-top:8px;">
+          <div class="formula-header">
+            <span>CANOPY BUFFER MODEL</span>
+            <span style="color:#6ee7b7;">46.8% PM REDUCTION</span>
+          </div>
+          <p style="font-size:10.5px;color:var(--text-muted);">
+            A two-tier green buffer (Kaner shrub hedge + Peepal/Neem canopy) of 8-meter depth yields an estimated 42% to 51% reduction in micro-PM2.5 penetration into campus classrooms.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==========================================================================
+       3. BOTTOM TELEMETRY DECK: AMAZON DYNAMODB TABLE
+       ========================================================================== -->
+  <footer class="bottom-telemetry-deck">
+    <div class="deck-header-row">
+      <div class="deck-tabs">
+        <button class="deck-tab-btn active" id="btnDeckDynamo" onclick="switchDeckTab('dynamo')">
+          <span>⚡</span> Amazon DynamoDB Telemetry (PranaVayu_Incidents)
+        </button>
+        <button class="deck-tab-btn" id="btnDeckBedrock" onclick="switchDeckTab('bedrock')">
+          <span>🧠</span> Amazon Bedrock Claude 3.5 Sonnet Audit Logs
+        </button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);" id="tableRecordCount">4 INCIDENTS LOGGED</span>
+        <button class="btn-tactical" onclick="insertSimulatedPlume()" style="padding:2px 8px;font-size:10px;">+ SIMULATE PLUME</button>
+      </div>
+    </div>
+
+    <!-- DYNAMODB INCIDENTS TABLE -->
+    <div class="table-container" id="dynamoTableContainer">
+      <table class="dynamo-table">
+        <thead>
+          <tr>
+            <th>INCIDENT ID (PK)</th>
+            <th>TIMESTAMP (SK)</th>
+            <th>MICRO-SOURCE TYPE</th>
+            <th>COORDINATES</th>
+            <th>STUDENTS AT RISK</th>
+            <th>EST. MICRO-AQI</th>
+            <th>CAAQMS DELTA</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="dynamoTableBody">
+          <!-- Populated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BEDROCK ANALYSIS CONSOLE (HIDDEN BY DEFAULT) -->
+    <div class="table-container" id="bedrockTableContainer" style="display:none;padding:10px;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <div style="color:var(--color-vayu-cyan);font-weight:700;margin-bottom:4px;">LATEST BEDROCK INFERENCE PAYLOAD:</div>
+          <div style="background:#000;padding:8px;border-radius:4px;border:1px solid var(--border-dim);font-size:10px;line-height:1.4;color:#a5f3fc;">
+            Model: anthropic.claude-3-5-sonnet-20241022-v2:0<br>
+            Invocation: Particulate Chemical Speciation & Legal Synthesis<br>
+            Detected Toxins: Benzo[a]pyrene (PAH), Elemental Black Carbon, Ultrafine Diesel Soot (PM0.1)<br>
+            Pediatric Alveolar Deposition Estimate: 4.8 µg/hr per juvenile lung
+          </div>
+        </div>
+        <div>
+          <div style="color:#6ee7b7;font-weight:700;margin-bottom:4px;">STATUTORY NOTICE CITATION AUDIT:</div>
+          <div style="background:#000;padding:8px;border-radius:4px;border:1px solid var(--border-dim);font-size:10px;line-height:1.4;color:#d1fae5;">
+            Air Act 1981 Section 19(5) applicability: VALIDATED (Control Area)<br>
+            Constitution Article 21 Right to Clean Air: AFFIRMED<br>
+            Compliance Mandate Period: 48 HOURS STRICT<br>
+            Penal Liability Exposure: Sec 37/38 (18 mos to 6 yrs imprisonment)
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       4. AWS ARCHITECTURE & DEPLOYMENT MODAL
+       ========================================================================== -->
+  <div class="modal-overlay" id="archModal" onclick="closeArchitectureModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>
+          <svg style="width:18px;height:18px;stroke:var(--color-vayu-cyan);fill:none;" viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          AWS SERVERLESS CLOUD ARCHITECTURE // PRANA-VAYU
+        </h3>
+        <button class="btn-tactical" onclick="closeArchitectureModal()">✕ CLOSE</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-muted);font-size:12px;">
+          PRANA-VAYU is architected for zero-maintenance high-availability on AWS, purpose-built for the Bharat Builds Environmental Hacks Air Track.
+        </p>
+
+        <!-- Visual Pipeline -->
+        <div class="arch-flow-diagram">
+          <div class="arch-node">
+            <div class="node-title">1. AWS Amplify</div>
+            <div class="node-sub">Static SPA Host & GitHub CI/CD Pipeline (Amplify Gen 2)</div>
+          </div>
+          <div class="arch-node">
+            <div class="node-title">2. API Gateway</div>
+            <div class="node-sub">REST / HTTP Proxy with Cognito Authorizer for Cadets</div>
+          </div>
+          <div class="arch-node">
+            <div class="node-title">3. AWS Lambda</div>
+            <div class="node-sub">Python 3.12 / Node.js 20 Plume Analyzer & Dispersion Engine</div>
+          </div>
+          <div class="arch-node">
+            <div class="node-title">4. Amazon Bedrock</div>
+            <div class="node-sub">Claude 3.5 Sonnet for Particulate Analysis & Legal Notices</div>
+          </div>
+        </div>
+
+        <div style="background:var(--bg-subpanel);padding:12px;border-radius:6px;border:1px solid var(--border-dim);display:flex;flex-direction:column;gap:8px;">
+          <div style="color:var(--color-vayu-cyan);font-family:var(--font-mono);font-size:12px;font-weight:700;">
+            Amazon DynamoDB Schema Architecture (On-Demand Capacity):
+          </div>
+          <pre style="background:#000;padding:10px;border-radius:4px;font-family:var(--font-mono);font-size:10px;color:#a5f3fc;overflow-x:auto;">
+Table Name: PranaVayu_Incidents
+Partition Key (PK): ORG#BHARAT#CAMPUS (String)
+Sort Key (SK): INCIDENT#[TIMESTAMP]#[UUID] (String)
+GSI-1 (SourceTypeIndex): PK = source_type, SK = timestamp
+Attributes:
+  - incident_id: UUID
+  - spotter_unit: "NCC_7_DEL_BN"
+  - source_type: "LEAF_BURNING" | "TRANSIT_BUS_IDLE" | "CONSTRUCTION_SILICA"
+  - gps_coordinates: { lat: 28.6924, lng: 77.2118 }
+  - exposed_pedestrians: "MEDIUM" (count ~140)
+  - micro_aqi_pm25: 680
+  - macro_caaqms_aqi: 142
+  - macro_delta_pct: 378
+  - aidei_score: 842.6
+  - abatement_notice_ref: "PV-LEGAL/2026/SEC19-5/DEL-8402"
+  - bedrock_speciation: { benzo_a_pyrene: true, black_carbon: "High" }
+  - statutory_status: "SERVED" | "ENFORCED" | "ABATED"</pre>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;">
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
+            Repo: <a href="https://github.com/Sarvepalliaudi/prana-vayu.git" target="_blank" style="color:var(--color-vayu-cyan);text-decoration:none;">Sarvepalliaudi/prana-vayu</a>
+          </span>
+          <button class="btn-tactical primary" onclick="closeArchitectureModal()">RETURN TO HUD</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       5. PRINT-NATIVE LEGAL NOTICE ENGINE (EXCLUSIVELY RENDERED IN PRINT DIALOG)
+       ========================================================================== -->
+  <div id="printNoticeTarget">
+    <div class="print-watermark">STATUTORY NOTICE // AIR ACT 1981</div>
+    <div class="print-double-border">
+      <div>
+        <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:16px;">
+          <div style="font-size:10pt;letter-spacing:2px;font-weight:bold;text-transform:uppercase;">Government of India // State Pollution Control Board Notice</div>
+          <div style="font-size:18pt;font-weight:bold;margin:4px 0;letter-spacing:1px;">STATUTORY NOTICE OF AIR POLLUTION EMERGENCY</div>
+          <div style="font-size:10.5pt;font-style:italic;">Issued under Section 19(5) Read with Section 31A of the Air (Prevention and Control of Pollution) Act, 1981</div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:10pt;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:14px;">
+          <div>
+            <strong>NOTICE ID:</strong> <span id="printNoticeRefId">PV-LEGAL/2026/SEC19-5/DEL-8402</span><br>
+            <strong>DATE & TIME:</strong> <span id="printNoticeDate">11-Oct-2026 16:00 IST</span><br>
+            <strong>LOCATION:</strong> <span id="printNoticeCoords">28.6924° N, 77.2118° E</span>
+          </div>
+          <div style="text-align:right;">
+            <strong>STATUTORY MANDATE:</strong> 48-HOUR COMPLIANCE<br>
+            <strong>SEVERITY:</strong> ACUTE BIOLOGICAL VIOLATION<br>
+            <strong>PENAL PROVISION:</strong> Section 37/38 (Air Act)
+          </div>
+        </div>
+
+        <div style="font-size:11pt;line-height:1.5;text-align:justify;">
+          <p><strong>TO THE NOTICE RECIPIENT(S):</strong><br>
+          1. The Member Secretary, State Pollution Control Board.<br>
+          2. The Ward Commissioner, Municipal Corporation / Local Health Authority.</p>
+
+          <p><strong>SUBJECT:</strong> Mandatory Abatement Injunction Against Acute Localized Micro-Combustion Plume Threatening Human Biological Respiration.</p>
+
+          <p><strong>1. PHILOSOPHICAL & CONSTITUTIONAL FOUNDATION:</strong><br>
+          Rooted in the Vedic cosmology of the Pancha Bhootas, Vayu (Air) governs Prana (the life-force). Medical science establishes that human life ceases within 180 seconds in the absence of clean air. Under Article 21 of the Constitution of India (as laid down by the Hon'ble Supreme Court in <em>Subhash Kumar v. State of Bihar</em> and <em>M.C. Mehta v. Union of India</em>), the Right to Life encompasses the absolute fundamental right to pollution-free, breathable air.</p>
+
+          <p><strong>2. TELEMETRIC EVIDENCE & INCIDENT PARTICULARS:</strong><br>
+          The Prana-Vayu Environmental Sensor and Observer Grid has recorded an acute, life-critical air pollution violation at the coordinates specified above. While distant government CAAQMS monitoring stations (15 km away) recorded a complacent macro-average, the local micro-climate breathing zone registered an acute lethal plume:</p>
+
+          <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:10pt;">
+            <thead>
+              <tr style="background:#f0f0f0;">
+                <th style="border:1px solid #000;padding:6px;text-align:left;">Telemetry Field</th>
+                <th style="border:1px solid #000;padding:6px;text-align:left;">Recorded Metric</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border:1px solid #000;padding:6px;">Micro-Source Classification</td>
+                <td style="border:1px solid #000;padding:6px;" id="printSourceType">Biomass & Perimeter Leaf Smoldering</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #000;padding:6px;">Exposed Pedestrian / Student Count</td>
+                <td style="border:1px solid #000;padding:6px;" id="printExposedDensity">Medium (~140 students in immediate plume path)</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #000;padding:6px;">Micro-Plume PM2.5 Concentration</td>
+                <td style="border:1px solid #000;padding:6px;" id="printMicroAqi">680 µg/m³ (Severe+ Acute Hazard)</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #000;padding:6px;">Official CAAQMS Macro Divergence</td>
+                <td style="border:1px solid #000;padding:6px;">142 AQI (+378% Localized Toxic Exceedance)</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #000;padding:6px;">Bedrock Chemical Speciation</td>
+                <td style="border:1px solid #000;padding:6px;">Carcinogenic PAHs, Benzo[a]pyrene, Black Carbon, Ultrafine Diesel Particles</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p><strong>3. STATUTORY DIRECTIVES & PENAL NOTICE:</strong><br>
+          Under <strong>Section 19(5) of the Air Act, 1981</strong>, open burning of non-approved fuels causing air pollution in declared air pollution control areas is strictly prohibited. You are hereby called upon to execute immediate physical dousing, vehicular diversion, and source suppression within <strong>48 HOURS</strong> of receipt of this notice.</p>
+
+          <p><strong>WARNING OF PENAL PROCEEDINGS:</strong><br>
+          Failure to actuate abatement within 48 hours shall trigger immediate formal complaints under <strong>Section 37 and 38 of the Air Act, 1981</strong> (punishable with rigorous imprisonment for up to 6 years), alongside petitioning the Hon'ble National Green Tribunal (NGT) Principal Bench under Sections 14 and 15 of the NGT Act, 2010.</p>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:28px;padding-top:14px;border-top:1px solid #000;font-size:10pt;">
+        <div>
+          __________________________________<br>
+          <strong>FIELD OBSERVER CADET RAPPORTEUR</strong><br>
+          NSS / NCC Environmental Action Unit
+        </div>
+        <div style="text-align:right;">
+          __________________________________<br>
+          <strong>STATUTORY AUDIT OFFICER</strong><br>
+          Prana-Vayu Taskforce Secretariat
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script>
+    /* ==========================================================================
+       PRANA-VAYU OPERATIONAL CONSOLE ENGINE // JAVASCRIPT LOGIC
+       ========================================================================== */
+
+    // In-Memory DynamoDB Telemetry Store
+    const dynamoDbStore = [
+      {
+        incident_id: "PV-INC-DEL-8401",
+        timestamp: "2026-10-11T15:20:00+05:30",
+        source_type: "LEAF_BURNING",
+        source_label: "Campus Perimeter Leaf Smolder",
+        lat: 28.6924,
+        lng: 77.2118,
+        pedestrian_density: "MEDIUM",
+        density_label: "~140 Students at Gate",
+        micro_aqi: 680,
+        macro_aqi: 142,
+        delta_pct: "+378%",
+        status: "ACTIVE",
+        notice_ref: "PV-LEGAL/2026/SEC19-5/DEL-8401",
+        wind_deg: 270
+      },
+      {
+        incident_id: "PV-INC-DEL-8402",
+        timestamp: "2026-10-11T14:45:00+05:30",
+        source_type: "TRANSIT_BUS_IDLE",
+        source_label: "Morning Transit Bus Idling (Gate 2)",
+        lat: 28.6955,
+        lng: 77.2150,
+        pedestrian_density: "CRITICAL",
+        density_label: ">250 Students / Cadets",
+        micro_aqi: 720,
+        macro_aqi: 145,
+        delta_pct: "+396%",
+        status: "ACTIVE",
+        notice_ref: "PV-LEGAL/2026/SEC19-5/DEL-8402",
+        wind_deg: 315
+      },
+      {
+        incident_id: "PV-INC-DEL-8403",
+        timestamp: "2026-10-11T13:10:00+05:30",
+        source_type: "CONSTRUCTION_SILICA",
+        source_label: "Hostel Block Silica Dust Cutting",
+        lat: 28.6890,
+        lng: 77.2085,
+        pedestrian_density: "LOW",
+        density_label: "<40 Pedestrians",
+        micro_aqi: 540,
+        macro_aqi: 138,
+        delta_pct: "+291%",
+        status: "ABATED",
+        notice_ref: "PV-LEGAL/2026/SEC19-5/DEL-8403",
+        wind_deg: 180
+      },
+      {
+        incident_id: "PV-INC-DEL-8404",
+        timestamp: "2026-10-11T12:00:00+05:30",
+        source_type: "DG_SET_EXHAUST",
+        source_label: "Auditorium DG Set Unfiltered Bypass",
+        lat: 28.6910,
+        lng: 77.2180,
+        pedestrian_density: "MEDIUM",
+        density_label: "~110 Students",
+        micro_aqi: 610,
+        macro_aqi: 140,
+        delta_pct: "+335%",
+        status: "ACTIVE",
+        notice_ref: "PV-LEGAL/2026/SEC19-5/DEL-8404",
+        wind_deg: 90
+      }
+    ];
+
+    let currentSelectedIncident = dynamoDbStore[0];
+    let map = null;
+    let markersLayer = null;
+    let dispersionConesLayer = null;
+    let audioContext = null;
+    let audioMuted = false;
+
+    // Biological Criticality Timer (180 seconds countdown animation loop)
+    let countdownSecs = 180;
+    function startBiologicalTimer() {
+      const timerEl = document.getElementById("biologicalTimer");
+      setInterval(() => {
+        countdownSecs--;
+        if (countdownSecs <= 0) countdownSecs = 180;
+        const mins = Math.floor(countdownSecs / 60);
+        const secs = countdownSecs % 60;
+        timerEl.textContent = `${mins}m ${secs.toString().padStart(2, '0')}s TO BIOLOGICAL COLLAPSE`;
+      }, 1000);
+    }
+
+    // Web Audio Tactical Beep Synthesizer
+    function playTacticalAudio(freq = 880, type = "sine", duration = 0.08) {
+      if (audioMuted) return;
+      try {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContext.state === "suspended") {
+          audioContext.resume();
+        }
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+        gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + duration);
+      } catch (e) {
+        console.warn("Audio synthesis unavailable", e);
+      }
+    }
+
+    function toggleTacticalAudio() {
+      audioMuted = !audioMuted;
+      const icon = document.getElementById("audioIcon");
+      icon.textContent = audioMuted ? "🔇" : "🔊";
+      if (!audioMuted) playTacticalAudio(1040, "sine", 0.1);
+    }
+
+    // Initialize Leaflet Tactical Map
+    function initTacticalMap() {
+      map = L.map('tacticalMap', {
+        center: [28.6924, 77.2118],
+        zoom: 15,
+        zoomControl: false
+      });
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      // Dark Matter CartoDB tiles
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB &copy; OpenStreetMap contributors',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+      dispersionConesLayer = L.layerGroup().addTo(map);
+
+      // Render official Macro CAAQMS reference marker
+      const caaqmsIcon = L.divIcon({
+        className: 'custom-caaqms-marker',
+        html: `<div style="background:#f59e0b;color:#000;font-weight:bold;font-size:9px;padding:3px 6px;border-radius:4px;border:1px solid #fff;white-space:nowrap;box-shadow:0 0 10px #f59e0b;">Govt CAAQMS (15 km) | AQI 142</div>`,
+        iconSize: [140, 24],
+        iconAnchor: [70, 12]
+      });
+      L.marker([28.7041, 77.1025], { icon: caaqmsIcon }).addTo(map).bindPopup(
+        `<strong>CAAQMS Pitampura (14.8 km Away)</strong><br>Reported AQI: 142 (Moderate)<br><span style="color:#f59e0b;">Blind to local campus combustion plumes!</span>`
+      );
+
+      // Map Click: pick coordinates
+      map.on('click', function(e) {
+        document.getElementById('inputLat').value = e.latlng.lat.toFixed(4);
+        document.getElementById('inputLng').value = e.latlng.lng.toFixed(4);
+        recalculateExposure();
+        playTacticalAudio(1200, "triangle", 0.05);
+      });
+
+      map.on('move', function() {
+        const c = map.getCenter();
+        document.getElementById('mapCenterCoords').textContent = `${c.lat.toFixed(4)}° N, ${c.lng.toFixed(4)}° E`;
+      });
+
+      renderMapIncidentMarkers();
+    }
+
+    // Render Plume Markers & Gaussian Dispersion Cones
+    function renderMapIncidentMarkers() {
+      markersLayer.clearLayers();
+      dispersionConesLayer.clearLayers();
+
+      dynamoDbStore.forEach((item) => {
+        // Draw Gaussian Downwind Dispersion Cone (simulated polygon)
+        const lat = item.lat;
+        const lng = item.lng;
+        const windDeg = item.wind_deg || 270;
+        const distanceKm = 0.45; // 450 meters plume downwind
+
+        // Calculate downwind cone points
+        const rad = (windDeg * Math.PI) / 180;
+        const radSpread1 = ((windDeg - 25) * Math.PI) / 180;
+        const radSpread2 = ((windDeg + 25) * Math.PI) / 180;
+
+        const dLat = (distanceKm / 111.0);
+        const dLng = (distanceKm / (111.0 * Math.cos((lat * Math.PI) / 180)));
+
+        const pt1 = [lat, lng];
+        const pt2 = [lat + dLat * Math.cos(radSpread1), lng + dLng * Math.sin(radSpread1)];
+        const pt3 = [lat + (dLat * 1.2) * Math.cos(rad), lng + (dLng * 1.2) * Math.sin(rad)];
+        const pt4 = [lat + dLat * Math.cos(radSpread2), lng + dLng * Math.sin(radSpread2)];
+
+        const coneColor = item.status === "ABATED" ? "#10b981" : "#ef4444";
+        const conePoly = L.polygon([pt1, pt2, pt3, pt4], {
+          color: coneColor,
+          weight: 1,
+          fillColor: coneColor,
+          fillOpacity: item.status === "ABATED" ? 0.08 : 0.22,
+          dashArray: '4, 4'
+        }).addTo(dispersionConesLayer);
+
+        conePoly.bindTooltip(`Plume Dispersion Corridor (Downwind: ${windDeg}°)`, { sticky: true });
+
+        // Pulsing Marker
+        const markerColor = item.status === "ABATED" ? "#10b981" : "#ef4444";
+        const markerIcon = L.divIcon({
+          className: 'custom-pulse-marker',
+          html: `<div style="position:relative;width:24px;height:24px;">
+                  <div style="position:absolute;inset:0;background:${markerColor};border-radius:50%;opacity:0.35;animation:pulseAlert 1.5s infinite;"></div>
+                  <div style="position:absolute;inset:4px;background:${markerColor};border:2px solid #fff;border-radius:50%;box-shadow:0 0 10px ${markerColor};"></div>
+                </div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(markersLayer);
+
+        marker.on('click', () => {
+          selectIncident(item);
+          playTacticalAudio(1400, "square", 0.06);
+        });
+
+        marker.bindPopup(`
+          <div style="font-family:var(--font-sans);min-width:210px;">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:${markerColor};">${item.source_label}</div>
+            <div style="font-size:10px;color:#94a3b8;margin:2px 0;">ID: ${item.incident_id}</div>
+            <hr style="border:none;border-top:1px solid #334155;margin:6px 0;">
+            <div style="font-size:11px;line-height:1.4;">
+              <strong>Micro-AQI PM2.5:</strong> <span style="color:#ef4444;font-weight:bold;">${item.micro_aqi} µg/m³</span><br>
+              <strong>Macro CAAQMS Delta:</strong> <span style="color:#f59e0b;">${item.delta_pct} Exceedance</span><br>
+              <strong>At-Risk Density:</strong> ${item.density_label}
+            </div>
+            <div style="margin-top:8px;display:flex;gap:4px;">
+              <button onclick="inspectIncidentLegal('${item.incident_id}')" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;font-size:9.5px;border-radius:3px;cursor:pointer;font-family:var(--font-mono);font-weight:bold;">TIER 3 NOTICE</button>
+            </div>
+          </div>
+        `);
+      });
+
+      document.getElementById('activePlumeCount').textContent = `${dynamoDbStore.filter(i => i.status === 'ACTIVE').length} ACTIVE PLUMES`;
+    }
+
+    // Switch Regional Presets
+    function jumpMapPreset(lat, lng, name) {
+      if (!map) return;
+      map.flyTo([lat, lng], 15, { duration: 1.2 });
+      document.querySelectorAll('.map-preset-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('inputLat').value = lat.toFixed(4);
+      document.getElementById('inputLng').value = lng.toFixed(4);
+      playTacticalAudio(980, "sine", 0.08);
+    }
+
+    // Geolocation Fetch
+    function fetchLiveGPS() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            document.getElementById('inputLat').value = lat.toFixed(4);
+            document.getElementById('inputLng').value = lng.toFixed(4);
+            map.flyTo([lat, lng], 16);
+            recalculateExposure();
+            playTacticalAudio(1320, "sine", 0.1);
+          },
+          (err) => {
+            alert("Hardware GPS location permission denied or timed out. Default coordinates preserved.");
+          }
+        );
+      } else {
+        alert("Geolocation API not supported in this browser.");
+      }
+    }
+
+    // Exposure Calculation (AIDEI Model)
+    function recalculateExposure() {
+      const source = document.getElementById('sourceType').value;
+      const density = document.getElementById('pedestrianDensity').value;
+      const opacity = parseInt(document.getElementById('plumeOpacity').value, 10);
+
+      let baseMicroPM = 350;
+      if (source === "LEAF_BURNING") baseMicroPM = 620;
+      if (source === "TRANSIT_BUS_IDLE") baseMicroPM = 740;
+      if (source === "CONSTRUCTION_SILICA") baseMicroPM = 510;
+      if (source === "DG_SET_EXHAUST") baseMicroPM = 650;
+      if (source === "PLASTIC_MSW_FIRE") baseMicroPM = 890;
+
+      const microPM = Math.round(baseMicroPM * (opacity / 3));
+
+      let studentCount = 35;
+      if (density === "MEDIUM") studentCount = 140;
+      if (density === "CRITICAL") studentCount = 280;
+
+      // Dose = C_micro * time(20 mins exposure) * ventilation(18 L/min) * studentCount / 1000
+      const doseUnits = ((microPM * 20 * 18 * studentCount) / 1000).toFixed(1);
+
+      document.getElementById('microAqiVal').textContent = `${microPM} µg/m³`;
+      document.getElementById('cardMicroAqi').textContent = `${microPM} µg/m³`;
+      document.getElementById('aideiScore').textContent = `${doseUnits} kUnits`;
+
+      const macroVal = 142;
+      const deltaPct = Math.round(((microPM - macroVal) / macroVal) * 100);
+      document.getElementById('cardMicroDelta').textContent = `+${deltaPct}% Lethal Spike`;
+
+      playTacticalAudio(760, "sine", 0.04);
+    }
+
+    // Log Acute Incident from Tier 1 Form
+    function logAcuteIncident() {
+      const lat = parseFloat(document.getElementById('inputLat').value) || 28.6924;
+      const lng = parseFloat(document.getElementById('inputLng').value) || 77.2118;
+      const source = document.getElementById('sourceType').value;
+      const density = document.getElementById('pedestrianDensity').value;
+      const windDeg = parseInt(document.getElementById('windDirection').value, 10);
+      const microPM = parseInt(document.getElementById('microAqiVal').textContent, 10) || 680;
+
+      const randomIdSuffix = Math.floor(1000 + Math.random() * 9000);
+      const newId = `PV-INC-DEL-${randomIdSuffix}`;
+      const noticeRef = `PV-LEGAL/2026/SEC19-5/DEL-${randomIdSuffix}`;
+
+      let sourceLabel = "Acute Biomass Perimeter Smolder";
+      if (source === "TRANSIT_BUS_IDLE") sourceLabel = "School Gate Diesel Transit Idling";
+      if (source === "CONSTRUCTION_SILICA") sourceLabel = "Silica Aggregate Construction Dust";
+      if (source === "DG_SET_EXHAUST") sourceLabel = "DG Generator Exhaust Bypass";
+      if (source === "PLASTIC_MSW_FIRE") sourceLabel = "Plastic MSW Open Incineration";
+
+      let densityLabel = density === "CRITICAL" ? ">200 Students at Risk" : (density === "MEDIUM" ? "~140 Students at Risk" : "<50 Students");
+
+      const newRecord = {
+        incident_id: newId,
+        timestamp: new Date().toISOString(),
+        source_type: source,
+        source_label: sourceLabel,
+        lat: lat,
+        lng: lng,
+        pedestrian_density: density,
+        density_label: densityLabel,
+        micro_aqi: microPM,
+        macro_aqi: 142,
+        delta_pct: `+${Math.round(((microPM - 142) / 142) * 100)}%`,
+        status: "ACTIVE",
+        notice_ref: noticeRef,
+        wind_deg: windDeg
+      };
+
+      dynamoDbStore.unshift(newRecord);
+      renderDynamoTable();
+      renderMapIncidentMarkers();
+      selectIncident(newRecord);
+
+      playTacticalAudio(1600, "square", 0.15);
+      alert(`[DYNAMODB WRITE SUCCESS]\nIncident ID: ${newId}\nStatutory Notice Generated: ${noticeRef}\nPlume Pinned to Telemetry Map.`);
+    }
+
+    function insertSimulatedPlume() {
+      const center = map.getCenter();
+      const rLat = center.lat + (Math.random() - 0.5) * 0.008;
+      const rLng = center.lng + (Math.random() - 0.5) * 0.008;
+      document.getElementById('inputLat').value = rLat.toFixed(4);
+      document.getElementById('inputLng').value = rLng.toFixed(4);
+      logAcuteIncident();
+    }
+
+    // Select Incident & Update Legal Notice & Inspector
+    function selectIncident(item) {
+      currentSelectedIncident = item;
+
+      // Update Screen Notice Card
+      document.getElementById('noticeRefId').textContent = item.notice_ref;
+      document.getElementById('tableNoticeCoords').textContent = `${item.lat.toFixed(4)}° N, ${item.lng.toFixed(4)}° E`;
+      document.getElementById('tableNoticeSource').textContent = item.source_label;
+      document.getElementById('tableNoticeDensity').textContent = item.density_label;
+      document.getElementById('tableNoticeAqi').textContent = `${item.micro_aqi} µg/m³ PM2.5 (Severe+ Hazard)`;
+
+      // Update Print Notice Template
+      document.getElementById('printNoticeRefId').textContent = item.notice_ref;
+      document.getElementById('printNoticeCoords').textContent = `${item.lat.toFixed(4)}° N, ${item.lng.toFixed(4)}° E`;
+      document.getElementById('printSourceType').textContent = item.source_label;
+      document.getElementById('printExposedDensity').textContent = item.density_label;
+      document.getElementById('printMicroAqi').textContent = `${item.micro_aqi} µg/m³`;
+    }
+
+    function inspectIncidentLegal(incidentId) {
+      const found = dynamoDbStore.find(i => i.incident_id === incidentId);
+      if (found) {
+        selectIncident(found);
+        switchRightTab('tier3');
+      }
+    }
+
+    // Render DynamoDB Table
+    function renderDynamoTable() {
+      const tbody = document.getElementById('dynamoTableBody');
+      tbody.innerHTML = '';
+
+      dynamoDbStore.forEach((item) => {
+        const tr = document.createElement('tr');
+        const statusClass = item.status === "ACTIVE" ? "critical" : "abated";
+
+        tr.innerHTML = `
+          <td style="color:var(--color-vayu-cyan);font-weight:700;">${item.incident_id}</td>
+          <td>${item.timestamp.substring(11, 19)} IST</td>
+          <td>${item.source_label}</td>
+          <td>${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}</td>
+          <td>${item.density_label}</td>
+          <td style="color:var(--color-critical);font-weight:700;">${item.micro_aqi} µg/m³</td>
+          <td style="color:var(--color-hazard);">${item.delta_pct}</td>
+          <td><span class="status-pill ${statusClass}">${item.status}</span></td>
+          <td>
+            <button class="btn-tactical" onclick="inspectIncidentLegal('${item.incident_id}')" style="padding:2px 6px;font-size:9.5px;">NOTICE</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('tableRecordCount').textContent = `${dynamoDbStore.length} INCIDENTS LOGGED`;
+    }
+
+    // Countermeasure Executed Action
+    function markCountermeasureDone(btn) {
+      btn.textContent = "EXECUTED ✓";
+      btn.style.background = "#10b981";
+      btn.style.borderColor = "#10b981";
+      btn.disabled = true;
+      playTacticalAudio(1100, "sine", 0.1);
+      alert("[TIER 2 ACTION LOGGED]: Physical countermeasure dispatched to ground team. Telemetry updated.");
+    }
+
+    // Switch Left Tabs
+    function switchLeftTab(tab) {
+      document.querySelectorAll('#tabTier1, #tabAidei, #tabFilter').forEach(b => b.classList.remove('active'));
+      if (tab === 'tier1') document.getElementById('tabTier1').classList.add('active');
+      if (tab === 'aidei') document.getElementById('tabAidei').classList.add('active');
+      if (tab === 'filter') document.getElementById('tabFilter').classList.add('active');
+      playTacticalAudio(840, "sine", 0.05);
+    }
+
+    // Switch Right Tabs
+    function switchRightTab(tab) {
+      document.querySelectorAll('#tabTier2, #tabTier3, #tabBotanical').forEach(b => b.classList.remove('active'));
+      document.getElementById('tier2View').style.display = 'none';
+      document.getElementById('tier3View').style.display = 'none';
+      document.getElementById('botanicalView').style.display = 'none';
+
+      if (tab === 'tier2') {
+        document.getElementById('tabTier2').classList.add('active');
+        document.getElementById('tier2View').style.display = 'flex';
+      } else if (tab === 'tier3') {
+        document.getElementById('tabTier3').classList.add('active');
+        document.getElementById('tier3View').style.display = 'flex';
+      } else if (tab === 'botanical') {
+        document.getElementById('tabBotanical').classList.add('active');
+        document.getElementById('botanicalView').style.display = 'flex';
+      }
+      playTacticalAudio(920, "sine", 0.05);
+    }
+
+    // Switch Deck Tabs
+    function switchDeckTab(tab) {
+      document.querySelectorAll('#btnDeckDynamo, #btnDeckBedrock').forEach(b => b.classList.remove('active'));
+      if (tab === 'dynamo') {
+        document.getElementById('btnDeckDynamo').classList.add('active');
+        document.getElementById('dynamoTableContainer').style.display = 'block';
+        document.getElementById('bedrockTableContainer').style.display = 'none';
+      } else {
+        document.getElementById('btnDeckBedrock').classList.add('active');
+        document.getElementById('dynamoTableContainer').style.display = 'none';
+        document.getElementById('bedrockTableContainer').style.display = 'block';
+      }
+      playTacticalAudio(860, "sine", 0.05);
+    }
+
+    // Print Legal Notice Engine
+    function triggerOfficialNoticePrint() {
+      playTacticalAudio(1480, "square", 0.12);
+      window.print();
+    }
+
+    function copyNoticeMarkdown() {
+      const text = `STATUTORY NOTICE UNDER SECTION 19(5), AIR ACT, 1981
+Notice Reference: ${currentSelectedIncident.notice_ref}
+Location: ${currentSelectedIncident.lat}° N, ${currentSelectedIncident.lng}° E
+Source: ${currentSelectedIncident.source_label}
+Recorded Micro-AQI: ${currentSelectedIncident.micro_aqi} µg/m³ PM2.5
+Exposed Students/Pedestrians: ${currentSelectedIncident.density_label}
+Statutory Window: 48 HOURS MANDATORY ABATEMENT
+Penal Code: Section 37/38 Air (Prevention and Control of Pollution) Act, 1981.`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Statutory Legal Memo copied to clipboard.");
+      });
+    }
+
+    // Modal Architecture Handlers
+    function openArchitectureModal() {
+      document.getElementById('archModal').classList.add('active');
+      playTacticalAudio(1100, "sine", 0.08);
+    }
+
+    function closeArchitectureModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('archModal').classList.remove('active');
+      playTacticalAudio(700, "sine", 0.06);
+    }
+
+    // Window Init
+    window.addEventListener('DOMContentLoaded', () => {
+      startBiologicalTimer();
+      initTacticalMap();
+      renderDynamoTable();
+      selectIncident(dynamoDbStore[0]);
+    });
+  </script>
+</body>
+</html>
